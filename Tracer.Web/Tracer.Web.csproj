@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Tracer.Web</AssemblyName>
     <RootNamespace>Tracer.Web</RootNamespace>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Tracer.Core\Tracer.Core.csproj" />
     <ProjectReference Include="..\Tracer.Infrastructure\Tracer.Infrastructure.csproj" />
+    <ProjectReference Include="..\Tracer.Radio.Windows\Tracer.Radio.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,27 +1,25 @@
 using InTheHand.Net;
 using InTheHand.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Tracer.Core.Contracts;
 using Tracer.Core.Enums;
 using Tracer.Core.Interfaces;
-using Tracer.Core.Options;
 
 namespace Tracer.Radio.Windows.Services;
 
 public sealed class BluetoothScanner(
-    IOptions<ScannerOptions> options,
+    IRuntimeSettingsService runtimeSettingsService,
     ILogger<BluetoothScanner> logger) : IRadioScanner
 {
-    private readonly ScannerOptions _options = options.Value;
-
     public RadioKind RadioKind => RadioKind.Bluetooth;
 
-    public Task<IReadOnlyCollection<RadioDeviceSnapshot>> ScanAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<RadioDeviceSnapshot>> ScanAsync(CancellationToken cancellationToken)
     {
-        if (!_options.EnableBluetooth)
+        var settings = await runtimeSettingsService.GetCurrentAsync(cancellationToken);
+
+        if (!settings.EnableBluetooth)
         {
-            return Task.FromResult<IReadOnlyCollection<RadioDeviceSnapshot>>(Array.Empty<RadioDeviceSnapshot>());
+            return Array.Empty<RadioDeviceSnapshot>();
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -52,7 +50,7 @@ public sealed class BluetoothScanner(
             .ToList();
 
         logger.LogInformation("Bluetooth scanner observed {Count} nearby devices.", snapshots.Count);
-        return Task.FromResult<IReadOnlyCollection<RadioDeviceSnapshot>>(snapshots);
+        return snapshots;
     }
 
     private static string FormatAddress(BluetoothAddress address)

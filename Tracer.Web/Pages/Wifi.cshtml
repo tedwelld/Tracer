@@ -9,20 +9,126 @@
         <p class="eyebrow">Scanner</p>
         <h1>Wi-Fi Networks</h1>
         <p class="hero-text">
-            View all discovered Wi-Fi access points. Edit, delete, or manage passwords for your networks.
+            View all discovered Wi-Fi access points. Filter the dataset, trigger a manual scan, and export the current result set when you need a focused report.
         </p>
     </div>
 </section>
 
 <section class="panel">
     <div class="panel-header">
-        <h2>Discovered Wi-Fi Networks (@Model.WifiDevices.Count)</h2>
-        <span class="panel-kicker">Sorted by last seen</span>
+        <div>
+            <h2>Connected Wi-Fi Session</h2>
+            <span class="panel-kicker">Live network details from this machine</span>
+        </div>
     </div>
+
+    @if (Model.ConnectedNetwork is null)
+    {
+        <p class="muted">This machine is not currently connected to a Wi-Fi network managed by the scanner.</p>
+    }
+    else
+    {
+        <div class="metrics connection-metrics">
+            <div>
+                <dt>Network</dt>
+                <dd>@Model.ConnectedNetwork.NetworkName</dd>
+            </div>
+            <div>
+                <dt>Signal</dt>
+                <dd>@Model.ConnectedNetwork.SignalQuality%</dd>
+            </div>
+            <div>
+                <dt>Local IP</dt>
+                <dd>@(Model.ConnectedNetwork.LocalIpAddress ?? "Unavailable")</dd>
+            </div>
+            <div>
+                <dt>Gateway</dt>
+                <dd>@(Model.ConnectedNetwork.GatewayAddress ?? "Unavailable")</dd>
+            </div>
+            <div>
+                <dt>Detected peers</dt>
+                <dd>@Model.ConnectedNetwork.PeerCount</dd>
+            </div>
+        </div>
+
+        @if (Model.ConnectedNetwork.PeerDevices.Count == 0)
+        {
+            <p class="muted connection-note">No peer devices are visible from the current ARP table yet. Traffic on the local network usually populates this list.</p>
+        }
+        else
+        {
+            <div class="table-container peer-table-container">
+                <table class="device-table">
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Device / Host Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var peer in Model.ConnectedNetwork.PeerDevices)
+                        {
+                            <tr>
+                                <td><code>@peer.IpAddress</code></td>
+                                <td>@(peer.DeviceName ?? "Name unavailable")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>Discovered Wi-Fi Networks (@Model.WifiDevices.Count)</h2>
+            <span class="panel-kicker">Sorted by last seen</span>
+        </div>
+        <div class="panel-actions">
+            <button type="button" class="button-warning scan-trigger" data-scan-label="Wi-Fi">Run scan now</button>
+            <a
+                asp-page="/Wifi"
+                asp-page-handler="ExportPdf"
+                asp-route-SearchTerm="@Model.SearchTerm"
+                asp-route-SearchDate="@(Model.SearchDate?.ToString("yyyy-MM-dd"))"
+                asp-route-KnownFilter="@Model.KnownFilter"
+                asp-route-SecurityFilter="@Model.SecurityFilter"
+                class="button-info">Export PDF</a>
+        </div>
+    </div>
+
+    <form method="get" class="dashboard-filter-form dashboard-filter-form-compact">
+        <label class="dashboard-filter-field">
+            <span>Name, MAC, vendor</span>
+            <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-input dashboard-filter-input" placeholder="Search networks" />
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Date</span>
+            <input type="date" name="SearchDate" value="@(Model.SearchDate?.ToString("yyyy-MM-dd"))" class="form-input dashboard-filter-input" />
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Trust</span>
+            <select name="KnownFilter" class="form-input dashboard-filter-input">
+                <option value="">All</option>
+                <option value="known" selected="@(Model.KnownFilter == "known")">Known</option>
+                <option value="unknown" selected="@(Model.KnownFilter == "unknown")">Unknown</option>
+            </select>
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Security</span>
+            <input type="text" name="SecurityFilter" value="@Model.SecurityFilter" class="form-input dashboard-filter-input" placeholder="WPA2, WPA3, Open" />
+        </label>
+        <div class="dashboard-filter-actions">
+            <button type="submit" class="button-primary">Filter</button>
+            <a asp-page="/Wifi" class="button-secondary">Clear</a>
+        </div>
+    </form>
 
     @if (Model.WifiDevices.Count == 0)
     {
-        <p class="muted">No Wi-Fi networks discovered yet. Ensure the scanner is running.</p>
+        <p class="muted">No Wi-Fi networks matched the current filters. Ensure the scanner is running or clear the query.</p>
     }
     else
     {
@@ -51,6 +157,11 @@
                                     <br />
                                     <small>(@device.DisplayName)</small>
                                 }
+                                <div class="device-meta">
+                                    <span>@(device.VendorName ?? "Unknown vendor")</span>
+                                    <span>@device.DeviceType</span>
+                                    <span>Risk @device.RiskScore</span>
+                                </div>
                             </td>
                             <td><code>@device.HardwareAddress</code></td>
                             <td>@device.SecurityType</td>
@@ -62,7 +173,7 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(device.Password))
                                 {
-                                    <span class="password-badge">●●●●●●</span>
+                                    <span class="password-badge">******</span>
                                 }
                                 else
                                 {
@@ -78,11 +189,34 @@
                                 {
                                     <span class="status-badge status-unknown">Unknown</span>
                                 }
+                                <div class="device-meta">
+                                    <span>@device.Reputation</span>
+                                    <span>@device.ConnectionState</span>
+                                    <span>@device.MovementTrend</span>
+                                </div>
                             </td>
-                            <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                            <td>
+                                @device.LastSeenUtc.ToLocalTime().ToString("g")
+                                <div class="device-meta">
+                                    <span>@(device.EstimatedDistanceMeters?.ToString("0.0") ?? "-") m</span>
+                                </div>
+                            </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button type="button" class="button-small button-secondary" data-edit-device="@device.Id">Edit</button>
+                                    <button
+                                        type="button"
+                                        class="button-small button-success wifi-connect-trigger"
+                                        data-connect-device="@device.Id"
+                                        data-network-name="@device.NetworkName"
+                                        data-security-type="@device.SecurityType"
+                                        data-has-password="@(!string.IsNullOrWhiteSpace(device.Password)).ToString().ToLowerInvariant()">Connect</button>
+                                    <button
+                                        type="button"
+                                        class="button-small button-secondary"
+                                        data-edit-device="@device.Id"
+                                        data-device-name="@device.NetworkName"
+                                        data-display-name="@device.DisplayName"
+                                        data-is-known="@device.IsKnown.ToString().ToLowerInvariant()">Edit</button>
                                     <button type="button" class="button-small button-danger" data-delete-device="@device.Id">Delete</button>
                                 </div>
                             </td>
@@ -97,7 +231,7 @@
 <dialog id="edit-device-dialog" class="device-dialog">
     <div class="dialog-content">
         <h3>Edit Wi-Fi Network</h3>
-        
+
         <div class="form-group">
             <label>Network Name</label>
             <input type="text" id="edit-network-name" class="form-input" readonly />
@@ -110,7 +244,7 @@
 
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="edit-password" class="form-input" placeholder="Enter Wi-Fi password" />
+            <input type="password" id="edit-password" class="form-input" placeholder="Leave blank to keep the current password" />
         </div>
 
         <div class="form-group">
@@ -129,8 +263,22 @@
 <style>
     .table-container {
         overflow-x: auto;
-        border-radius: 8px;
-        border: 1px solid var(--border-color, #e0e0e0);
+        max-width: 100%;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    .peer-table-container {
+        margin-top: 1rem;
+    }
+
+    .connection-metrics {
+        margin-bottom: 0.5rem;
+    }
+
+    .connection-note {
+        margin-top: 0.75rem;
     }
 
     .device-table {
@@ -140,103 +288,92 @@
     }
 
     .device-table thead {
-        background-color: var(--bg-secondary, #f5f5f5);
+        background-color: var(--panel-soft);
     }
 
     .device-table th {
         padding: 12px;
         text-align: left;
         font-weight: 600;
-        border-bottom: 2px solid var(--border-color, #e0e0e0);
+        border-bottom: 2px solid var(--border-strong);
     }
 
     .device-table td {
         padding: 12px;
-        border-bottom: 1px solid var(--border-color, #e0e0e0);
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
     }
 
     .device-table tbody tr:hover {
-        background-color: var(--bg-hover, #fafafa);
+        background-color: var(--surface-hover);
     }
 
     .signal-badge {
         display: inline-block;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 999px;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .signal-strong {
-        background-color: #d4edda;
-        color: #155724;
+        background-color: rgba(149, 255, 183, 0.18);
+        color: var(--accent);
     }
 
     .signal-medium {
-        background-color: #fff3cd;
-        color: #856404;
+        background-color: var(--warn-surface);
+        color: var(--warn);
     }
 
     .signal-weak {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: var(--danger-surface);
+        color: var(--danger);
     }
 
     .password-badge {
-        color: #666;
+        color: var(--accent);
         font-weight: 600;
+        font-family: var(--mono);
     }
 
     .status-badge {
         display: inline-block;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 999px;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .status-known {
-        background-color: #d4edda;
-        color: #155724;
+        background-color: rgba(149, 255, 183, 0.18);
+        color: var(--accent);
     }
 
     .status-unknown {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: var(--danger-surface);
+        color: var(--danger);
     }
 
     .action-buttons {
         display: flex;
         gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .button-small {
-        padding: 4px 12px;
+        padding: 0.45rem 0.85rem;
         font-size: 0.85rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .button-secondary:hover {
-        background-color: #e0e0e0;
-    }
-
-    .button-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    .button-danger:hover {
-        background-color: #f5c6cb;
     }
 
     .device-dialog {
-        border: 1px solid var(--border-color, #e0e0e0);
-        border-radius: 8px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
         padding: 20px;
         max-width: 500px;
+        background: var(--panel-strong);
+        color: var(--text);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
@@ -258,60 +395,31 @@
         font-weight: 500;
     }
 
-    .form-input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid var(--border-color, #e0e0e0);
-        border-radius: 4px;
-        font-family: inherit;
-        font-size: 0.95rem;
-    }
-
-    .form-input:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-    }
-
     .dialog-actions {
         display: flex;
         gap: 10px;
         justify-content: flex-end;
         margin-top: 20px;
-    }
-
-    .button-primary {
-        background-color: #007bff;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .button-primary:hover {
-        background-color: #0056b3;
+        flex-wrap: wrap;
     }
 </style>
 
 <script>
-    function GetSignalClass(signal) {
-        if (signal >= 70) return 'strong';
-        if (signal >= 40) return 'medium';
-        return 'weak';
-    }
-
     const dialog = document.getElementById('edit-device-dialog');
     let currentDeviceId = null;
 
+    function openEditDialog(button) {
+        currentDeviceId = button.dataset.editDevice;
+        document.getElementById('edit-network-name').value = button.dataset.deviceName ?? '';
+        document.getElementById('edit-display-name').value = button.dataset.displayName ?? '';
+        document.getElementById('edit-password').value = '';
+        document.getElementById('edit-is-known').checked = button.dataset.isKnown === 'true';
+        dialog.showModal();
+    }
+
     document.addEventListener('click', async (e) => {
         if (e.target.dataset.editDevice) {
-            currentDeviceId = e.target.dataset.editDevice;
-            const row = e.target.closest('tr');
-            document.getElementById('edit-network-name').value = row.querySelector('strong').textContent;
-            dialog.showModal();
+            openEditDialog(e.target);
         }
 
         if (e.target.dataset.deleteDevice) {
@@ -325,13 +433,18 @@
 
     document.getElementById('save-device-btn').addEventListener('click', async () => {
         const displayName = document.getElementById('edit-display-name').value;
-        const password = document.getElementById('edit-password').value;
+        const password = document.getElementById('edit-password').value.trim();
         const isKnown = document.getElementById('edit-is-known').checked;
+        const payload = { displayName, isKnown };
+
+        if (password.length > 0) {
+            payload.password = password;
+        }
 
         const response = await fetch(`/api/devices/${currentDeviceId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ displayName, password, isKnown })
+            body: JSON.stringify(payload)
         });
 
         if (response.ok) {
@@ -342,6 +455,74 @@
     document.getElementById('cancel-edit-btn').addEventListener('click', () => {
         dialog.close();
     });
+
+    for (const button of document.querySelectorAll('.scan-trigger')) {
+        button.addEventListener('click', async () => {
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = `Running ${button.dataset.scanLabel ?? 'scan'}...`;
+
+            try {
+                const response = await fetch('/api/scans/run', { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error('Scan request failed.');
+                }
+
+                location.reload();
+            } catch (error) {
+                alert(error.message ?? 'Unable to start a scan right now.');
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        });
+    }
+
+    for (const button of document.querySelectorAll('.wifi-connect-trigger')) {
+        button.addEventListener('click', async () => {
+            const hasPassword = button.dataset.hasPassword === 'true';
+            const security = button.dataset.securityType ?? '';
+            let credential = null;
+
+            if (!hasPassword && !/open/i.test(security)) {
+                credential = prompt(`Enter the password for ${button.dataset.networkName ?? 'this network'}:`);
+                if (credential === null) {
+                    return;
+                }
+            }
+
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Connecting...';
+
+            try {
+                const response = await fetch(`/api/wifi/${button.dataset.connectDevice}/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message ?? 'Wi-Fi connection failed.');
+                }
+
+                location.reload();
+            } catch (error) {
+                alert(error.message ?? 'Unable to connect to the selected Wi-Fi network.');
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        });
+    }
+
+    const editDeviceId = new URLSearchParams(window.location.search).get('edit');
+    if (editDeviceId) {
+        const editButton = document.querySelector(`[data-edit-device="${editDeviceId}"]`);
+        if (editButton) {
+            openEditDialog(editButton);
+            history.replaceState(null, '', window.location.pathname);
+        }
+    }
 </script>
 
 @functions {

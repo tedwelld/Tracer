@@ -1,19 +1,33 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Tracer.Core.Contracts;
 using Tracer.Core.Enums;
 using Tracer.Core.Interfaces;
 using Tracer.Infrastructure;
 using Tracer.Infrastructure.Persistence;
+using Tracer.Radio.Windows;
+using Tracer.Web.Services;
 
 namespace Tracer.Web;
 
 sealed record UpdateDeviceRequest(string? DisplayName, string? Password, bool IsKnown);
+sealed record DeviceConnectRequest(string? Credential);
 sealed record ScannerSettingsRequest(
     int ApproximateRangeMeters,
     bool EnableWifi,
     bool EnableBluetooth,
     int ScanIntervalSeconds,
     int WifiScanTimeoutSeconds,
-    int MinimumWifiSignalQuality);
+    int MinimumWifiSignalQuality,
+    bool CreateAlertsForUnknownDevices,
+    int ReturnAlertThresholdMinutes,
+    bool EnableRogueWifiDetection,
+    bool EnableUnknownBluetoothConnectionAlerts,
+    bool EnableAutomaticRecommendations,
+    int RiskAlertThreshold,
+    bool AutoLogDevices,
+    bool EnablePacketMetadataCapture,
+    bool EnableTrafficAnalysis);
 
 class Program
 {
@@ -21,8 +35,30 @@ class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddRazorPages();
+        builder.Services
+            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.AccessDeniedPath = "/Account/Login";
+                options.Cookie.Name = "Tracer.Admin";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+            });
+
+        builder.Services.AddAuthorization();
+
+        builder.Services.AddRazorPages(options =>
+        {
+            options.Conventions.AuthorizeFolder("/");
+            options.Conventions.AllowAnonymousToPage("/Account/Login");
+            options.Conventions.AllowAnonymousToPage("/Error");
+        });
         builder.Services.AddTracerInfrastructure(builder.Configuration);
+        builder.Services.AddTracerWindowsRadioScanning();
+        builder.Services.AddSingleton<WifiConnectionService>();
+        builder.Services.AddSingleton<BluetoothConnectionService>();
 
         var app = builder.Build();
 
@@ -41,11 +77,15 @@ class Program
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapRazorPages();
 
-        app.MapGet("/api/alerts/pending", async (IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        var api = app.MapGroup("/api")
+            .RequireAuthorization();
+
+        api.MapGet("/alerts/pending", async (IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -69,7 +109,7 @@ class Program
             return Results.Ok(alerts);
         });
 
-        app.MapPost("/api/alerts/{id:long}/acknowledge", async (long id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        api.MapPost("/alerts/{id:long}/acknowledge", async (long id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var alert = await dbContext.DeviceAlerts.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -86,7 +126,7 @@ class Program
             return Results.Ok();
         });
 
-        app.MapPost("/api/devices/{id:guid}/known", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        api.MapPost("/devices/{id:guid}/known", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var device = await dbContext.DiscoveredDevices.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -112,7 +152,7 @@ class Program
             return Results.Ok();
         });
 
-        app.MapPut("/api/devices/{id:guid}", async (Guid id, UpdateDeviceRequest request, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        api.MapPut("/devices/{id:guid}", async (Guid id, UpdateDeviceRequest request, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var device = await dbContext.DiscoveredDevices.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -150,7 +190,7 @@ class Program
             return Results.Ok();
         });
 
-        app.MapDelete("/api/devices/{id:guid}", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        api.MapDelete("/devices/{id:guid}", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var device = await dbContext.DiscoveredDevices.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -165,7 +205,7 @@ class Program
             return Results.Ok();
         });
 
-        app.MapDelete("/api/devices/{id:guid}/password", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
+        api.MapDelete("/devices/{id:guid}/password", async (Guid id, IDbContextFactory<TracerDbContext> dbContextFactory, CancellationToken cancellationToken) =>
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var device = await dbContext.DiscoveredDevices.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -180,14 +220,88 @@ class Program
             return Results.Ok();
         });
 
-        app.MapPost("/api/settings", async (ScannerSettingsRequest request, IConfiguration configuration, CancellationToken cancellationToken) =>
+        api.MapPost("/wifi/{id:guid}/connect", async (
+            Guid id,
+            DeviceConnectRequest request,
+            IDbContextFactory<TracerDbContext> dbContextFactory,
+            WifiConnectionService wifiConnectionService,
+            CancellationToken cancellationToken) =>
         {
-            // Note: In a production environment, you would want to update the actual configuration
-            // This is a simplified version that acknowledges the request
-            // In reality, you'd need to persist these settings to a database or configuration file
-            // and restart the worker service for the changes to take effect
-            
-            return Results.Ok(new { message = "Settings updated. Please restart the scanner worker service for changes to take effect." });
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var device = await dbContext.DiscoveredDevices
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == id && x.RadioKind == RadioKind.Wifi, cancellationToken);
+
+            if (device is null)
+            {
+                return Results.NotFound();
+            }
+
+            var result = await wifiConnectionService.ConnectAsync(
+                device.NetworkName ?? device.DisplayName ?? device.DeviceKey,
+                string.IsNullOrWhiteSpace(request.Credential) ? device.Password : request.Credential,
+                cancellationToken);
+
+            return result.Success
+                ? Results.Ok(result)
+                : Results.BadRequest(result);
+        });
+
+        api.MapPost("/bluetooth/{id:guid}/connect", async (
+            Guid id,
+            DeviceConnectRequest request,
+            IDbContextFactory<TracerDbContext> dbContextFactory,
+            BluetoothConnectionService bluetoothConnectionService,
+            CancellationToken cancellationToken) =>
+        {
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var device = await dbContext.DiscoveredDevices
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == id && x.RadioKind == RadioKind.Bluetooth, cancellationToken);
+
+            if (device is null)
+            {
+                return Results.NotFound();
+            }
+
+            var result = await bluetoothConnectionService.ConnectAsync(
+                device.HardwareAddress ?? string.Empty,
+                request.Credential,
+                cancellationToken);
+
+            return result.Success
+                ? Results.Ok(result)
+                : Results.BadRequest(result);
+        });
+
+        api.MapPost("/settings", async (ScannerSettingsRequest request, IRuntimeSettingsService runtimeSettingsService, CancellationToken cancellationToken) =>
+        {
+            var updated = await runtimeSettingsService.UpdateAsync(
+                new RuntimeSettingsSnapshot(
+                    request.EnableWifi,
+                    request.EnableBluetooth,
+                    request.ScanIntervalSeconds,
+                    request.ApproximateRangeMeters,
+                    request.WifiScanTimeoutSeconds,
+                    request.MinimumWifiSignalQuality,
+                    request.CreateAlertsForUnknownDevices,
+                    request.ReturnAlertThresholdMinutes,
+                    request.EnableRogueWifiDetection,
+                    request.EnableUnknownBluetoothConnectionAlerts,
+                    request.EnableAutomaticRecommendations,
+                    request.RiskAlertThreshold,
+                    request.AutoLogDevices,
+                    request.EnablePacketMetadataCapture,
+                    request.EnableTrafficAnalysis),
+                cancellationToken);
+
+            return Results.Ok(updated);
+        });
+
+        api.MapPost("/scans/run", async (IScanCoordinator scanCoordinator, CancellationToken cancellationToken) =>
+        {
+            var summary = await scanCoordinator.ExecuteAsync(cancellationToken);
+            return Results.Ok(summary);
         });
 
         await app.RunAsync();

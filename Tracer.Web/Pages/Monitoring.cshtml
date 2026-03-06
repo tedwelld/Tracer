@@ -1,0 +1,283 @@
+@page
+@model MonitoringModel
+@{
+    ViewData["Title"] = "Monitoring";
+}
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Operations</p>
+        <h1>Monitoring</h1>
+        <p class="hero-text">
+            Review scanner health, adapter status, diagnostic events, and the latest device activity from the background worker.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <article class="stat-card">
+            <span class="stat-label">Scans today</span>
+            <strong>@Model.Monitoring.Health.TodayScanCount</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Errors today</span>
+            <strong>@Model.Monitoring.Health.TodayErrorCount</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Suspicious this week</span>
+            <strong>@Model.Monitoring.Health.WeekSuspiciousObservations</strong>
+        </article>
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Latest worker batch</h2>
+            <span class="panel-kicker">Scanner diagnostics</span>
+        </div>
+        @if (Model.Monitoring.LatestBatch is null)
+        {
+            <p class="muted">No scan batch has been persisted yet.</p>
+        }
+        else
+        {
+            <dl class="metrics">
+                <div>
+                    <dt>Completed</dt>
+                    <dd>@Model.Monitoring.LatestBatch.CompletedUtc.ToLocalTime().ToString("g")</dd>
+                </div>
+                <div>
+                    <dt>Node</dt>
+                    <dd>@Model.Monitoring.LatestBatch.ScannerNode</dd>
+                </div>
+                <div>
+                    <dt>Duration</dt>
+                    <dd>@($"{Model.Monitoring.LatestBatch.DurationMilliseconds / 1000d:0.##} s")</dd>
+                </div>
+                <div>
+                    <dt>Memory</dt>
+                    <dd>@($"{Model.Monitoring.LatestBatch.MemoryUsageMb:0.##} MB")</dd>
+                </div>
+                <div>
+                    <dt>Devices</dt>
+                    <dd>@Model.Monitoring.LatestBatch.TotalDevices</dd>
+                </div>
+                <div>
+                    <dt>Suspicious</dt>
+                    <dd>@Model.Monitoring.LatestBatch.SuspiciousDevices</dd>
+                </div>
+                <div>
+                    <dt>Errors</dt>
+                    <dd>@Model.Monitoring.LatestBatch.ErrorCount</dd>
+                </div>
+                <div>
+                    <dt>Average today</dt>
+                    <dd>@($"{Model.Monitoring.Health.AverageDurationSeconds:0.##} s")</dd>
+                </div>
+            </dl>
+            <div class="monitoring-summary">
+                <strong>Adapter status</strong>
+                <p>@(Model.Monitoring.LatestBatch.AdapterStatusSummary ?? "No adapter summary was captured.")</p>
+            </div>
+        }
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Recent observations</h2>
+                <span class="panel-kicker">Signal and movement trends</span>
+            </div>
+        </div>
+        @if (Model.Monitoring.RecentObservations.Count == 0)
+        {
+            <p class="muted">No device observations are stored yet.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="device-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Radio</th>
+                            <th>Device</th>
+                            <th>Signal</th>
+                            <th>Risk</th>
+                            <th>State</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var observation in Model.Monitoring.RecentObservations)
+                        {
+                            <tr>
+                                <td>@observation.ObservedUtc.ToLocalTime().ToString("g")</td>
+                                <td>@observation.RadioKind</td>
+                                <td>@observation.DeviceLabel</td>
+                                <td>@(observation.SignalStrength?.ToString() ?? "-")</td>
+                                <td>@observation.RiskScore</td>
+                                <td>@observation.ConnectionState</td>
+                                <td>@observation.MovementTrend</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>Diagnostic event log</h2>
+            <span class="panel-kicker">Scanner and security events</span>
+        </div>
+        <div class="panel-actions">
+            <a
+                asp-page="/Monitoring"
+                asp-page-handler="ExportPdf"
+                asp-route-SearchLevel="@Model.SearchLevel"
+                asp-route-SearchDate="@(Model.SearchDate?.ToString("yyyy-MM-dd"))"
+                class="button-info">Export PDF</a>
+        </div>
+    </div>
+    <form method="get" class="dashboard-filter-form dashboard-filter-form-compact">
+        <label class="dashboard-filter-field">
+            <span>Level</span>
+            <select name="SearchLevel" class="form-input dashboard-filter-input">
+                <option value="">All</option>
+                <option value="Info" selected="@(Model.SearchLevel == "Info")">Info</option>
+                <option value="Warning" selected="@(Model.SearchLevel == "Warning")">Warning</option>
+                <option value="Error" selected="@(Model.SearchLevel == "Error")">Error</option>
+            </select>
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Date</span>
+            <input type="date" name="SearchDate" value="@(Model.SearchDate?.ToString("yyyy-MM-dd"))" class="form-input dashboard-filter-input" />
+        </label>
+        <div class="dashboard-filter-actions">
+            <button type="submit" class="button-primary">Filter</button>
+            <a asp-page="/Monitoring" class="button-secondary">Clear</a>
+        </div>
+    </form>
+    @if (Model.Monitoring.RecentEvents.Count == 0)
+    {
+        <p class="muted">No event log entries matched the current filters.</p>
+    }
+    else
+    {
+        <div class="event-list">
+            @foreach (var entry in Model.Monitoring.RecentEvents)
+            {
+                <article class="event-card">
+                    <div class="event-header">
+                        <div>
+                            <span class="event-level event-level-@entry.Level.ToLowerInvariant()">@entry.Level</span>
+                            <strong>@entry.EventType</strong>
+                        </div>
+                        <span class="muted">@entry.CreatedUtc.ToLocalTime().ToString("g")</span>
+                    </div>
+                    <p>@entry.Message</p>
+                    <div class="event-meta">
+                        <span>@(entry.RadioKind ?? "System")</span>
+                        @if (!string.IsNullOrWhiteSpace(entry.DeviceLabel))
+                        {
+                            <span>@entry.DeviceLabel</span>
+                        }
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(entry.Details))
+                    {
+                        <p class="event-details">@entry.Details</p>
+                    }
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<style>
+    .monitoring-summary {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+    }
+
+    .monitoring-summary strong {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .monitoring-summary p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .event-list {
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .event-card {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        background: var(--surface);
+    }
+
+    .event-card p {
+        margin: 0.75rem 0 0;
+    }
+
+    .event-header,
+    .event-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .event-meta {
+        margin-top: 0.75rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-family: var(--mono);
+    }
+
+    .event-level {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.55rem;
+        margin-right: 0.6rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-family: var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .event-level-info {
+        background: var(--info-surface);
+        color: var(--info);
+    }
+
+    .event-level-warning {
+        background: var(--warn-surface);
+        color: var(--warn);
+    }
+
+    .event-level-error {
+        background: var(--danger-surface);
+        color: var(--danger);
+    }
+
+    .event-details {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.6;
+    }
+</style>

@@ -1,13 +1,11 @@
-using Microsoft.Extensions.Options;
 using Tracer.Core.Interfaces;
-using Tracer.Core.Options;
 
 namespace Tracer.Scanner.Worker;
 
 public sealed class Worker(
     IDatabaseInitializer databaseInitializer,
     IScanCoordinator scanCoordinator,
-    IOptionsMonitor<ScannerOptions> options,
+    IRuntimeSettingsService runtimeSettingsService,
     ILogger<Worker> logger) : BackgroundService
 {
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -40,7 +38,8 @@ public sealed class Worker(
                 logger.LogError(ex, "Unhandled failure during scanner cycle.");
             }
 
-            var delay = TimeSpan.FromSeconds(Math.Max(5, options.CurrentValue.ScanIntervalSeconds));
+            var settings = await runtimeSettingsService.GetCurrentAsync(stoppingToken);
+            var delay = TimeSpan.FromSeconds(Math.Max(5, settings.ScanIntervalSeconds));
             await Task.Delay(delay, stoppingToken);
         }
     }

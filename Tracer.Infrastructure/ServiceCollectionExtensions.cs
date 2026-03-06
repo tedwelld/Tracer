@@ -21,7 +21,10 @@ public static class ServiceCollectionExtensions
         services.AddDbContextFactory<TracerDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        services.AddSingleton<RuntimeSettingsService>();
+        services.AddSingleton<IRuntimeSettingsService>(sp => sp.GetRequiredService<RuntimeSettingsService>());
         services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
+        services.AddSingleton<DeviceIntelligenceService>();
         services.AddSingleton<IScanCoordinator, ScanCoordinator>();
 
         return services;

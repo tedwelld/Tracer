@@ -98,6 +98,19 @@
                         class="form-input" />
                     <p class="hint-text">Maximum time to wait for Wi-Fi scan to complete.</p>
                 </div>
+
+                <div class="form-group">
+                    <label for="return-threshold">Return Alert Threshold (Minutes)</label>
+                    <input
+                        type="number"
+                        id="return-threshold"
+                        name="returnAlertThresholdMinutes"
+                        min="15"
+                        max="1440"
+                        value="@Model.CurrentSettings.ReturnAlertThresholdMinutes"
+                        class="form-input" />
+                    <p class="hint-text">Raise a return alert when a device reappears after this amount of time.</p>
+                </div>
             </fieldset>
 
             <fieldset class="settings-section">
@@ -114,6 +127,111 @@
                         value="@Model.CurrentSettings.MinimumWifiSignalQuality" 
                         class="form-input" />
                     <p class="hint-text">Networks below this signal quality will be filtered out. 0-100%.</p>
+                </div>
+            </fieldset>
+
+            <fieldset class="settings-section">
+                <legend>Security Policies</legend>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="createAlertsForUnknownDevices"
+                            @(Model.CurrentSettings.CreateAlertsForUnknownDevices ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Alert on unknown devices</span>
+                    </label>
+                    <p class="hint-text">Create alerts whenever non-whitelisted devices appear.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="enableRogueWifiDetection"
+                            @(Model.CurrentSettings.EnableRogueWifiDetection ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Detect rogue or duplicate Wi-Fi</span>
+                    </label>
+                    <p class="hint-text">Identify duplicate SSIDs that may indicate evil twin access points.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="enableUnknownBluetoothConnectionAlerts"
+                            @(Model.CurrentSettings.EnableUnknownBluetoothConnectionAlerts ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Alert on unknown Bluetooth connections</span>
+                    </label>
+                    <p class="hint-text">Raise high-priority alerts for unfamiliar Bluetooth devices that appear connected.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="enableAutomaticRecommendations"
+                            @(Model.CurrentSettings.EnableAutomaticRecommendations ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Generate automatic recommendations</span>
+                    </label>
+                    <p class="hint-text">Suggest actions such as disconnecting suspicious devices or disabling Bluetooth.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="risk-threshold">Risk Alert Threshold</label>
+                    <input
+                        type="number"
+                        id="risk-threshold"
+                        name="riskAlertThreshold"
+                        min="10"
+                        max="100"
+                        value="@Model.CurrentSettings.RiskAlertThreshold"
+                        class="form-input" />
+                    <p class="hint-text">Devices meeting or exceeding this risk score generate suspicious-device alerts.</p>
+                </div>
+            </fieldset>
+
+            <fieldset class="settings-section">
+                <legend>Telemetry and Logging</legend>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="autoLogDevices"
+                            @(Model.CurrentSettings.AutoLogDevices ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Auto-log detected devices</span>
+                    </label>
+                    <p class="hint-text">Persist every detection into device activity logs automatically.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="enablePacketMetadataCapture"
+                            @(Model.CurrentSettings.EnablePacketMetadataCapture ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Capture packet metadata</span>
+                    </label>
+                    <p class="hint-text">Store scan metadata that can support future traffic analysis and intrusion detection.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            name="enableTrafficAnalysis"
+                            @(Model.CurrentSettings.EnableTrafficAnalysis ? "checked" : "")
+                            class="form-checkbox" />
+                        <span>Enable traffic analysis heuristics</span>
+                    </label>
+                    <p class="hint-text">Reserved for deeper traffic analysis workflows and future packet inspection features.</p>
                 </div>
             </fieldset>
         </div>
@@ -138,10 +256,10 @@
     }
 
     .settings-section {
-        border: 1px solid var(--border-color, #e0e0e0);
+        border: 1px solid var(--border);
         border-radius: 8px;
         padding: 20px;
-        background: white;
+        background: var(--surface);
     }
 
     .settings-section legend {
@@ -169,7 +287,7 @@
     .form-input {
         width: 100%;
         padding: 8px 12px;
-        border: 1px solid var(--border-color, #e0e0e0);
+        border: 1px solid var(--border);
         border-radius: 4px;
         font-family: inherit;
         font-size: 0.95rem;
@@ -177,14 +295,14 @@
 
     .form-input:focus {
         outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        border-color: var(--accent-strong);
+        box-shadow: 0 0 0 3px rgba(149, 255, 183, 0.18);
     }
 
     .hint-text {
         margin: 4px 0 0 0;
         font-size: 0.85rem;
-        color: #666;
+        color: var(--muted);
     }
 
     .checkbox-label {
@@ -200,7 +318,7 @@
         width: 18px;
         height: 18px;
         cursor: pointer;
-        accent-color: #007bff;
+        accent-color: var(--accent-strong);
     }
 
     .range-input-group {
@@ -213,7 +331,7 @@
         flex: 1;
         height: 6px;
         border-radius: 3px;
-        background: #ddd;
+        background: rgba(159, 192, 182, 0.22);
         outline: none;
         -webkit-appearance: none;
         appearance: none;
@@ -225,7 +343,7 @@
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: #007bff;
+        background: var(--accent);
         cursor: pointer;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
@@ -234,7 +352,7 @@
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: #007bff;
+        background: var(--accent);
         cursor: pointer;
         border: none;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -254,8 +372,8 @@
     }
 
     .button-primary {
-        background-color: #007bff;
-        color: white;
+        background-color: var(--accent);
+        color: var(--accent-ink);
         padding: 10px 24px;
         border: none;
         border-radius: 4px;
@@ -265,12 +383,12 @@
     }
 
     .button-primary:hover {
-        background-color: #0056b3;
+        background-color: var(--accent-strong);
     }
 
     .button-secondary {
-        background-color: #e0e0e0;
-        color: #333;
+        background-color: var(--surface-hover);
+        color: var(--text);
         padding: 10px 24px;
         border: none;
         border-radius: 4px;
@@ -282,7 +400,7 @@
     }
 
     .button-secondary:hover {
-        background-color: #d0d0d0;
+        background-color: var(--panel-soft);
     }
 </style>
 
@@ -294,17 +412,26 @@
         rangeDisplay.textContent = `${e.target.value} m`;
     });
 
-    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+    document.getElementById('settings-form').addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        const formData = new FormData(this);
+        const formData = new FormData(e.currentTarget);
         const settings = {
             approximateRangeMeters: parseInt(formData.get('rangeMeters')),
             enableWifi: formData.get('enableWifi') ? true : false,
             enableBluetooth: formData.get('enableBluetooth') ? true : false,
             scanIntervalSeconds: parseInt(formData.get('scanIntervalSeconds')),
             wifiScanTimeoutSeconds: parseInt(formData.get('wifiScanTimeoutSeconds')),
-            minimumWifiSignalQuality: parseInt(formData.get('minimumWifiSignalQuality'))
+            minimumWifiSignalQuality: parseInt(formData.get('minimumWifiSignalQuality')),
+            createAlertsForUnknownDevices: formData.get('createAlertsForUnknownDevices') ? true : false,
+            returnAlertThresholdMinutes: parseInt(formData.get('returnAlertThresholdMinutes')),
+            enableRogueWifiDetection: formData.get('enableRogueWifiDetection') ? true : false,
+            enableUnknownBluetoothConnectionAlerts: formData.get('enableUnknownBluetoothConnectionAlerts') ? true : false,
+            enableAutomaticRecommendations: formData.get('enableAutomaticRecommendations') ? true : false,
+            riskAlertThreshold: parseInt(formData.get('riskAlertThreshold')),
+            autoLogDevices: formData.get('autoLogDevices') ? true : false,
+            enablePacketMetadataCapture: formData.get('enablePacketMetadataCapture') ? true : false,
+            enableTrafficAnalysis: formData.get('enableTrafficAnalysis') ? true : false
         };
 
         const response = await fetch('/api/settings', {

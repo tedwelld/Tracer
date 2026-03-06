@@ -1,25 +1,23 @@
 using System.Globalization;
 using ManagedNativeWifi;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Tracer.Core.Contracts;
 using Tracer.Core.Enums;
 using Tracer.Core.Interfaces;
-using Tracer.Core.Options;
 
 namespace Tracer.Radio.Windows.Services;
 
 public sealed class WifiScanner(
-    IOptions<ScannerOptions> options,
+    IRuntimeSettingsService runtimeSettingsService,
     ILogger<WifiScanner> logger) : IRadioScanner
 {
-    private readonly ScannerOptions _options = options.Value;
-
     public RadioKind RadioKind => RadioKind.Wifi;
 
     public async Task<IReadOnlyCollection<RadioDeviceSnapshot>> ScanAsync(CancellationToken cancellationToken)
     {
-        if (!_options.EnableWifi)
+        var settings = await runtimeSettingsService.GetCurrentAsync(cancellationToken);
+
+        if (!settings.EnableWifi)
         {
             return Array.Empty<RadioDeviceSnapshot>();
         }
@@ -27,7 +25,7 @@ public sealed class WifiScanner(
         try
         {
             await NativeWifi.ScanNetworksAsync(
-                timeout: TimeSpan.FromSeconds(Math.Max(3, _options.WifiScanTimeoutSeconds)),
+                timeout: TimeSpan.FromSeconds(Math.Max(3, settings.WifiScanTimeoutSeconds)),
                 cancellationToken: cancellationToken);
         }
         catch (UnauthorizedAccessException ex)
@@ -44,7 +42,7 @@ public sealed class WifiScanner(
             {
                 var signalQuality = bssNetwork?.LinkQuality ?? group.SignalQuality;
 
-                if (signalQuality < _options.MinimumWifiSignalQuality)
+                if (signalQuality < settings.MinimumWifiSignalQuality)
                 {
                     continue;
                 }
@@ -68,7 +66,7 @@ public sealed class WifiScanner(
                     ExtractInterfaceName(group.InterfaceInfo),
                     bssNetwork?.Channel ?? group.Channel,
                     bssNetwork is null ? null : $"{bssNetwork.Band.ToString("0.0", CultureInfo.InvariantCulture)} GHz",
-                    $"SSID={networkName};Connectable={group.IsConnectable};RangeHintMeters={_options.ApproximateRangeMeters}"));
+                    $"SSID={networkName};Connectable={group.IsConnectable};RangeHintMeters={settings.ApproximateRangeMeters}"));
             }
         }
 

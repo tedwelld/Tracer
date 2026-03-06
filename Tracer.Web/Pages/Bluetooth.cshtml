@@ -9,20 +9,111 @@
         <p class="eyebrow">Scanner</p>
         <h1>Bluetooth Devices</h1>
         <p class="hero-text">
-            View all discovered Bluetooth devices. Edit, delete, or manage device information.
+            Review nearby Bluetooth devices, narrow the results with targeted filters, and export the visible dataset when you need to audit a specific period or device group.
         </p>
     </div>
 </section>
 
 <section class="panel">
     <div class="panel-header">
-        <h2>Discovered Bluetooth Devices (@Model.BluetoothDevices.Count)</h2>
-        <span class="panel-kicker">Sorted by last seen</span>
+        <div>
+            <h2>Active Bluetooth Sessions</h2>
+            <span class="panel-kicker">Live device details from the local adapter</span>
+        </div>
     </div>
+
+    @if (Model.ConnectedDevices.Count == 0)
+    {
+        <p class="muted">No active Bluetooth sessions are visible right now. Pair or connect a device to populate live details.</p>
+    }
+    else
+    {
+        <div class="table-container live-table-container">
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Address</th>
+                        <th>Battery</th>
+                        <th>IP Address</th>
+                        <th>Connectivity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var liveDevice in Model.ConnectedDevices)
+                    {
+                        <tr>
+                            <td>@liveDevice.DeviceName</td>
+                            <td><code>@liveDevice.HardwareAddress</code></td>
+                            <td>@(liveDevice.BatteryPercent is int battery ? $"{battery}%" : "Unavailable")</td>
+                            <td>@(liveDevice.IpAddress ?? "Not exposed by device")</td>
+                            <td>
+                                <div class="device-meta">
+                                    <span>@(liveDevice.IsConnected ? "Connected" : "Paired")</span>
+                                    <span>Signal @(liveDevice.SignalStrength?.ToString() ?? "N/A")</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>Discovered Bluetooth Devices (@Model.BluetoothDevices.Count)</h2>
+            <span class="panel-kicker">Sorted by last seen</span>
+        </div>
+        <div class="panel-actions">
+            <button type="button" class="button-warning scan-trigger" data-scan-label="Bluetooth">Run scan now</button>
+            <a
+                asp-page="/Bluetooth"
+                asp-page-handler="ExportPdf"
+                asp-route-SearchTerm="@Model.SearchTerm"
+                asp-route-SearchDate="@(Model.SearchDate?.ToString("yyyy-MM-dd"))"
+                asp-route-KnownFilter="@Model.KnownFilter"
+                asp-route-PairingFilter="@Model.PairingFilter"
+                class="button-info">Export PDF</a>
+        </div>
+    </div>
+
+    <form method="get" class="dashboard-filter-form dashboard-filter-form-compact">
+        <label class="dashboard-filter-field">
+            <span>Name, MAC, vendor</span>
+            <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-input dashboard-filter-input" placeholder="Search devices" />
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Date</span>
+            <input type="date" name="SearchDate" value="@(Model.SearchDate?.ToString("yyyy-MM-dd"))" class="form-input dashboard-filter-input" />
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Trust</span>
+            <select name="KnownFilter" class="form-input dashboard-filter-input">
+                <option value="">All</option>
+                <option value="known" selected="@(Model.KnownFilter == "known")">Known</option>
+                <option value="unknown" selected="@(Model.KnownFilter == "unknown")">Unknown</option>
+            </select>
+        </label>
+        <label class="dashboard-filter-field">
+            <span>Pairing</span>
+            <select name="PairingFilter" class="form-input dashboard-filter-input">
+                <option value="">All</option>
+                <option value="paired" selected="@(Model.PairingFilter == "paired")">Paired</option>
+                <option value="unpaired" selected="@(Model.PairingFilter == "unpaired")">Unpaired</option>
+            </select>
+        </label>
+        <div class="dashboard-filter-actions">
+            <button type="submit" class="button-primary">Filter</button>
+            <a asp-page="/Bluetooth" class="button-secondary">Clear</a>
+        </div>
+    </form>
 
     @if (Model.BluetoothDevices.Count == 0)
     {
-        <p class="muted">No Bluetooth devices discovered yet. Ensure the scanner is running.</p>
+        <p class="muted">No Bluetooth devices matched the current filters. Ensure the scanner is running or clear the query.</p>
     }
     else
     {
@@ -50,6 +141,11 @@
                                     <br />
                                     <small>(@device.DisplayName)</small>
                                 }
+                                <div class="device-meta">
+                                    <span>@(device.VendorName ?? "Unknown vendor")</span>
+                                    <span>@device.DeviceType</span>
+                                    <span>Risk @device.RiskScore</span>
+                                </div>
                             </td>
                             <td><code>@device.HardwareAddress</code></td>
                             <td>
@@ -76,11 +172,33 @@
                                 {
                                     <span class="status-badge status-unknown">Unknown</span>
                                 }
+                                <div class="device-meta">
+                                    <span>@device.Reputation</span>
+                                    <span>@device.ConnectionState</span>
+                                    <span>@device.MovementTrend</span>
+                                </div>
                             </td>
-                            <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                            <td>
+                                @device.LastSeenUtc.ToLocalTime().ToString("g")
+                                <div class="device-meta">
+                                    <span>@(device.EstimatedDistanceMeters?.ToString("0.0") ?? "-") m</span>
+                                </div>
+                            </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button type="button" class="button-small button-secondary" data-edit-device="@device.Id">Edit</button>
+                                    <button
+                                        type="button"
+                                        class="button-small button-success bluetooth-connect-trigger"
+                                        data-connect-device="@device.Id"
+                                        data-device-name="@device.DeviceName"
+                                        data-is-paired="@device.IsPaired.ToString().ToLowerInvariant()">Connect</button>
+                                    <button
+                                        type="button"
+                                        class="button-small button-secondary"
+                                        data-edit-device="@device.Id"
+                                        data-device-name="@device.DeviceName"
+                                        data-display-name="@device.DisplayName"
+                                        data-is-known="@device.IsKnown.ToString().ToLowerInvariant()">Edit</button>
                                     <button type="button" class="button-small button-danger" data-delete-device="@device.Id">Delete</button>
                                 </div>
                             </td>
@@ -95,7 +213,7 @@
 <dialog id="edit-device-dialog" class="device-dialog">
     <div class="dialog-content">
         <h3>Edit Bluetooth Device</h3>
-        
+
         <div class="form-group">
             <label>Device Name</label>
             <input type="text" id="edit-device-name" class="form-input" readonly />
@@ -122,8 +240,14 @@
 <style>
     .table-container {
         overflow-x: auto;
-        border-radius: 8px;
-        border: 1px solid var(--border-color, #e0e0e0);
+        max-width: 100%;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    .live-table-container {
+        margin-top: 0.5rem;
     }
 
     .device-table {
@@ -133,108 +257,91 @@
     }
 
     .device-table thead {
-        background-color: var(--bg-secondary, #f5f5f5);
+        background-color: var(--panel-soft);
     }
 
     .device-table th {
         padding: 12px;
         text-align: left;
         font-weight: 600;
-        border-bottom: 2px solid var(--border-color, #e0e0e0);
+        border-bottom: 2px solid var(--border-strong);
     }
 
     .device-table td {
         padding: 12px;
-        border-bottom: 1px solid var(--border-color, #e0e0e0);
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
     }
 
     .device-table tbody tr:hover {
-        background-color: var(--bg-hover, #fafafa);
+        background-color: var(--surface-hover);
     }
 
     .signal-badge {
         display: inline-block;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 999px;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .signal-strong {
-        background-color: #d4edda;
-        color: #155724;
+        background-color: rgba(149, 255, 183, 0.18);
+        color: var(--accent);
     }
 
     .signal-medium {
-        background-color: #fff3cd;
-        color: #856404;
+        background-color: var(--warn-surface);
+        color: var(--warn);
     }
 
     .signal-weak {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: var(--danger-surface);
+        color: var(--danger);
     }
 
     .status-badge {
         display: inline-block;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 999px;
         font-weight: 600;
         font-size: 0.85rem;
     }
 
     .status-known {
-        background-color: #d4edda;
-        color: #155724;
+        background-color: rgba(149, 255, 183, 0.18);
+        color: var(--accent);
     }
 
     .status-unknown {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: var(--danger-surface);
+        color: var(--danger);
     }
 
     .status-paired {
-        background-color: #cce5ff;
-        color: #004085;
+        background-color: var(--info-surface);
+        color: var(--info);
     }
 
     .action-buttons {
         display: flex;
         gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .button-small {
-        padding: 4px 12px;
+        padding: 0.45rem 0.85rem;
         font-size: 0.85rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .button-secondary {
-        background-color: #e0e0e0;
-        color: #333;
-    }
-
-    .button-secondary:hover {
-        background-color: #d0d0d0;
-    }
-
-    .button-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    .button-danger:hover {
-        background-color: #f5c6cb;
     }
 
     .device-dialog {
-        border: 1px solid var(--border-color, #e0e0e0);
-        border-radius: 8px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
         padding: 20px;
         max-width: 500px;
+        background: var(--panel-strong);
+        color: var(--text);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
@@ -256,23 +363,8 @@
         font-weight: 500;
     }
 
-    .form-input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid var(--border-color, #e0e0e0);
-        border-radius: 4px;
-        font-family: inherit;
-        font-size: 0.95rem;
-    }
-
-    .form-input:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-    }
-
     .form-input:read-only {
-        background-color: #f5f5f5;
+        background-color: rgba(255, 255, 255, 0.04);
         cursor: not-allowed;
     }
 
@@ -281,40 +373,25 @@
         gap: 10px;
         justify-content: flex-end;
         margin-top: 20px;
-    }
-
-    .button-primary {
-        background-color: #007bff;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .button-primary:hover {
-        background-color: #0056b3;
+        flex-wrap: wrap;
     }
 </style>
 
 <script>
-    function GetSignalClass(signal) {
-        if (signal >= 70) return 'strong';
-        if (signal >= 40) return 'medium';
-        return 'weak';
-    }
-
     const dialog = document.getElementById('edit-device-dialog');
     let currentDeviceId = null;
 
+    function openEditDialog(button) {
+        currentDeviceId = button.dataset.editDevice;
+        document.getElementById('edit-device-name').value = button.dataset.deviceName ?? '';
+        document.getElementById('edit-display-name').value = button.dataset.displayName ?? '';
+        document.getElementById('edit-is-known').checked = button.dataset.isKnown === 'true';
+        dialog.showModal();
+    }
+
     document.addEventListener('click', async (e) => {
         if (e.target.dataset.editDevice) {
-            currentDeviceId = e.target.dataset.editDevice;
-            const row = e.target.closest('tr');
-            document.getElementById('edit-device-name').value = row.querySelector('strong').textContent;
-            dialog.showModal();
+            openEditDialog(e.target);
         }
 
         if (e.target.dataset.deleteDevice) {
@@ -344,6 +421,63 @@
     document.getElementById('cancel-edit-btn').addEventListener('click', () => {
         dialog.close();
     });
+
+    for (const button of document.querySelectorAll('.scan-trigger')) {
+        button.addEventListener('click', async () => {
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = `Running ${button.dataset.scanLabel ?? 'scan'}...`;
+
+            try {
+                const response = await fetch('/api/scans/run', { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error('Scan request failed.');
+                }
+
+                location.reload();
+            } catch (error) {
+                alert(error.message ?? 'Unable to start a scan right now.');
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        });
+    }
+
+    for (const button of document.querySelectorAll('.bluetooth-connect-trigger')) {
+        button.addEventListener('click', async () => {
+            let credential = null;
+
+            if (button.dataset.isPaired !== 'true') {
+                credential = prompt(`Enter the pairing code for ${button.dataset.deviceName ?? 'this Bluetooth device'} if required:`, '');
+                if (credential === null) {
+                    return;
+                }
+            }
+
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Connecting...';
+
+            try {
+                const response = await fetch(`/api/bluetooth/${button.dataset.connectDevice}/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message ?? 'Bluetooth connection failed.');
+                }
+
+                location.reload();
+            } catch (error) {
+                alert(error.message ?? 'Unable to connect to the selected Bluetooth device.');
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        });
+    }
 </script>
 
 @functions {

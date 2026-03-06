@@ -2,6 +2,17 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Tracer Dashboard";
+
+    var radioDistribution = Model.Dashboard.RadioDistribution;
+    var connectivity = Model.Dashboard.ConnectivityBreakdown;
+    var activePercent = connectivity.TotalCount == 0 ? 0 : connectivity.ActiveCount * 100d / connectivity.TotalCount;
+    var quietPercent = connectivity.TotalCount == 0 ? 0 : connectivity.QuietCount * 100d / connectivity.TotalCount;
+    var quietStop = activePercent + quietPercent;
+    var donutBackground = connectivity.TotalCount == 0
+        ? "radial-gradient(circle, rgba(8, 26, 35, 0.94) 58%, transparent 59%), conic-gradient(rgba(159, 192, 182, 0.18) 0 100%)"
+        : FormattableString.Invariant($"radial-gradient(circle, rgba(8, 26, 35, 0.94) 58%, transparent 59%), conic-gradient(var(--accent) 0% {activePercent:0.##}%, var(--warn) {activePercent:0.##}% {quietStop:0.##}%, var(--danger) {quietStop:0.##}% 100%)");
+    var wifiBarHeight = FormattableString.Invariant($"height:{(radioDistribution.WifiCount * 100d / radioDistribution.MaxCount):0.##}%");
+    var bluetoothBarHeight = FormattableString.Invariant($"height:{(radioDistribution.BluetoothCount * 100d / radioDistribution.MaxCount):0.##}%");
 }
 
 <section class="hero-panel">
@@ -10,7 +21,7 @@
         <h1>Local Wi-Fi and Bluetooth watch console</h1>
         <p class="hero-text">
             Continuous scans run in the worker service, discoveries are stored in SQL Server 2022,
-            and unknown devices generate prompts on this dashboard.
+            and the dashboard highlights recent scan activity across the environment.
         </p>
     </div>
     <div class="hero-stats">
@@ -29,8 +40,81 @@
     </div>
 </section>
 
-<section class="dashboard-grid">
-    <article class="panel">
+<section class="insights-grid">
+    <article class="panel chart-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Collection Mix</h2>
+                <span class="panel-kicker">Tracked device totals</span>
+            </div>
+            <span class="chart-total">@radioDistribution.TotalCount devices</span>
+        </div>
+        <div class="bar-chart">
+            <article class="bar-column">
+                <span class="bar-value">@radioDistribution.WifiCount</span>
+                <div class="bar-track">
+                    <div class="bar-fill bar-fill-wifi" style="@wifiBarHeight"></div>
+                </div>
+                <span class="bar-label">Wi-Fi</span>
+            </article>
+            <article class="bar-column">
+                <span class="bar-value">@radioDistribution.BluetoothCount</span>
+                <div class="bar-track">
+                    <div class="bar-fill bar-fill-bluetooth" style="@bluetoothBarHeight"></div>
+                </div>
+                <span class="bar-label">Bluetooth</span>
+            </article>
+        </div>
+    </article>
+
+    <article class="panel chart-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Connectivity Status</h2>
+                <span class="panel-kicker">All devices by last seen activity</span>
+            </div>
+            <span class="chart-total">@connectivity.TotalCount devices</span>
+        </div>
+        <div class="donut-layout">
+            <div class="donut-chart" style="background:@donutBackground">
+                <div class="donut-center">
+                    <strong>@connectivity.TotalCount</strong>
+                    <span>devices</span>
+                </div>
+            </div>
+            <div class="legend-list">
+                <article class="legend-item">
+                    <span class="legend-swatch legend-swatch-active"></span>
+                    <div>
+                        <strong>Active</strong>
+                        <span>Seen within 15 minutes</span>
+                    </div>
+                    <span>@connectivity.ActiveCount</span>
+                </article>
+                <article class="legend-item">
+                    <span class="legend-swatch legend-swatch-quiet"></span>
+                    <div>
+                        <strong>Quiet</strong>
+                        <span>Seen within 1 hour</span>
+                    </div>
+                    <span>@connectivity.QuietCount</span>
+                </article>
+                <article class="legend-item">
+                    <span class="legend-swatch legend-swatch-offline"></span>
+                    <div>
+                        <strong>Offline</strong>
+                        <span>No recent activity</span>
+                    </div>
+                    <span>@connectivity.OfflineCount</span>
+                </article>
+            </div>
+        </div>
+        <p class="dashboard-note">Connectivity is inferred from each device's latest observation timestamp so both Wi-Fi and Bluetooth are measured consistently.</p>
+    </article>
+</section>
+
+<section class="dashboard-grid dashboard-grid-single">
+    <article class="panel latest-scan-panel">
         <div class="panel-header">
             <h2>Latest scan</h2>
             <span class="panel-kicker">Background worker</span>
@@ -65,90 +149,71 @@
             </dl>
         }
     </article>
-
-    <article class="panel">
-        <div class="panel-header">
-            <h2>Pending alerts</h2>
-            <span class="panel-kicker">Prompt queue</span>
-        </div>
-        <div class="alert-stack" id="pending-alerts">
-            @if (Model.Dashboard.PendingAlerts.Count == 0)
-            {
-                <p class="muted">No pending alerts.</p>
-            }
-            else
-            {
-                @foreach (var alert in Model.Dashboard.PendingAlerts)
-                {
-                    <article class="alert-card">
-                        <div>
-                            <p class="alert-title">@alert.Title</p>
-                            <p class="alert-device">@alert.DeviceLabel (@alert.RadioKind)</p>
-                            <p class="alert-message">@alert.Message</p>
-                        </div>
-                        <div class="alert-actions">
-                            <button type="button" class="button-secondary" data-ack-alert="@alert.Id">Acknowledge</button>
-                            <button type="button" class="button-primary" data-know-device="@alert.DeviceId">Mark trusted</button>
-                        </div>
-                    </article>
-                }
-            }
-        </div>
-    </article>
 </section>
 
 <section class="panel">
     <div class="panel-header">
-        <h2>Recent devices</h2>
-        <span class="panel-kicker">Latest observations</span>
+        <div>
+            <h2>Recent devices</h2>
+            <span class="panel-kicker">Latest 5 observations</span>
+        </div>
+        <form method="get" class="dashboard-filter-form">
+            <label class="dashboard-filter-field">
+                <span>Name</span>
+                <input type="text" name="SearchName" value="@Model.SearchName" class="form-input dashboard-filter-input" placeholder="Device name or address" />
+            </label>
+            <label class="dashboard-filter-field">
+                <span>Date</span>
+                <input type="date" name="SearchDate" value="@(Model.SearchDate?.ToString("yyyy-MM-dd"))" class="form-input dashboard-filter-input" />
+            </label>
+            <div class="dashboard-filter-actions">
+                <button type="submit" class="button-primary">Filter</button>
+                <a asp-page="/Index" class="button-secondary">Clear</a>
+            </div>
+        </form>
     </div>
     <div class="table-wrap">
-        <table class="device-table">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Device</th>
-                    <th>Address</th>
-                    <th>Security</th>
-                    <th>Signal</th>
-                    <th>Status</th>
-                    <th>Last seen</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var device in Model.Dashboard.RecentDevices)
-                {
+        @if (Model.Dashboard.RecentDevices.Count == 0)
+        {
+            <p class="muted">No devices matched the current filters.</p>
+        }
+        else
+        {
+            <table class="device-table">
+                <thead>
                     <tr>
-                        <td>@device.RadioKind</td>
-                        <td>@device.Label</td>
-                        <td>@(device.HardwareAddress ?? "-")</td>
-                        <td>@(device.SecurityType ?? "-")</td>
-                        <td>@(device.SignalStrength?.ToString() ?? "-")</td>
-                        <td>
-                            <span class="pill @(device.IsKnown ? "pill-known" : "pill-alert")">
-                                @(device.IsKnown ? "Trusted" : "Unknown")
-                            </span>
-                            @if (device.IsPaired)
-                            {
-                                <span class="pill pill-paired">Paired</span>
-                            }
-                        </td>
-                        <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                        <th>Type</th>
+                        <th>Device</th>
+                        <th>Address</th>
+                        <th>Security</th>
+                        <th>Signal</th>
+                        <th>Status</th>
+                        <th>Last seen</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</section>
-
-<section class="prompt-shell" id="alertPrompt" hidden>
-    <div class="prompt-card">
-        <p class="eyebrow">Live prompt</p>
-        <h2 id="promptTitle">New device alert</h2>
-        <p id="promptMessage"></p>
-        <div class="alert-actions">
-            <button type="button" class="button-secondary" id="promptAcknowledge">Acknowledge</button>
-            <button type="button" class="button-primary" id="promptTrust">Mark trusted</button>
-        </div>
+                </thead>
+                <tbody>
+                    @foreach (var device in Model.Dashboard.RecentDevices)
+                    {
+                        <tr>
+                            <td>@device.RadioKind</td>
+                            <td>@device.Label</td>
+                            <td>@(device.HardwareAddress ?? "-")</td>
+                            <td>@(device.SecurityType ?? "-")</td>
+                            <td>@(device.SignalStrength?.ToString() ?? "-")</td>
+                            <td>
+                                <span class="pill @(device.IsKnown ? "pill-known" : "pill-alert")">
+                                    @(device.IsKnown ? "Trusted" : "Unknown")
+                                </span>
+                                @if (device.IsPaired)
+                                {
+                                    <span class="pill pill-paired">Paired</span>
+                                }
+                            </td>
+                            <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
 </section>

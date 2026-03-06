@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {
+    "net8.0-windows10.0.19041": {
       "Azure.Core/1.38.0": {
         "type": "package",
         "dependencies": {
@@ -56,6 +56,32 @@
         },
         "runtime": {
           "lib/net6.0/Humanizer.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "InTheHand.Net.Bluetooth/4.2.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0-windows10.0.19041/InTheHand.Net.Bluetooth.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0-windows10.0.19041/InTheHand.Net.Bluetooth.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "ManagedNativeWifi/3.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/ManagedNativeWifi.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/ManagedNativeWifi.dll": {
             "related": ".xml"
           }
         }
@@ -641,7 +667,7 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
+      "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
         "type": "package",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
@@ -1550,6 +1576,24 @@
         "runtime": {
           "bin/placeholder/Tracer.Infrastructure.dll": {}
         }
+      },
+      "Tracer.Radio.Windows/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "InTheHand.Net.Bluetooth": "4.2.2",
+          "ManagedNativeWifi": "3.0.2",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "8.0.0",
+          "Tracer.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Tracer.Radio.Windows.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Tracer.Radio.Windows.dll": {}
+        }
       }
     }
   },
@@ -1608,6 +1652,58 @@
         "lib/netstandard2.0/Humanizer.dll",
         "lib/netstandard2.0/Humanizer.xml",
         "logo.png"
+      ]
+    },
+    "InTheHand.Net.Bluetooth/4.2.2": {
+      "sha512": "OgRCwJzJS2bNgKlEf1G6Vlt1dn+rICOegWNopvSDbEalk+gOjZ8pm8BzMtbyR6a+tJBRCYDV7mQ4jL2J203NfA==",
+      "type": "package",
+      "path": "inthehand.net.bluetooth/4.2.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "32feet-package-icon.png",
+        "README.md",
+        "inthehand.net.bluetooth.4.2.2.nupkg.sha512",
+        "inthehand.net.bluetooth.nuspec",
+        "lib/monoandroid10.0/InTheHand.Net.Bluetooth.dll",
+        "lib/monoandroid10.0/InTheHand.Net.Bluetooth.xml",
+        "lib/net462/InTheHand.Net.Bluetooth.dll",
+        "lib/net462/InTheHand.Net.Bluetooth.xml",
+        "lib/net8.0-android34.0/InTheHand.Net.Bluetooth.dll",
+        "lib/net8.0-android34.0/InTheHand.Net.Bluetooth.xml",
+        "lib/net8.0-ios18.0/InTheHand.Net.Bluetooth.dll",
+        "lib/net8.0-ios18.0/InTheHand.Net.Bluetooth.xml",
+        "lib/net8.0-windows10.0.19041/InTheHand.Net.Bluetooth.dll",
+        "lib/net8.0-windows10.0.19041/InTheHand.Net.Bluetooth.xml",
+        "lib/net8.0-windows7.0/InTheHand.Net.Bluetooth.dll",
+        "lib/net8.0-windows7.0/InTheHand.Net.Bluetooth.xml",
+        "lib/net8.0/InTheHand.Net.Bluetooth.dll",
+        "lib/net8.0/InTheHand.Net.Bluetooth.xml",
+        "lib/netstandard2.0/InTheHand.Net.Bluetooth.dll",
+        "lib/netstandard2.0/InTheHand.Net.Bluetooth.xml",
+        "lib/netstandard2.1/InTheHand.Net.Bluetooth.dll",
+        "lib/netstandard2.1/InTheHand.Net.Bluetooth.xml",
+        "lib/uap10.0.16299/InTheHand.Net.Bluetooth.dll",
+        "lib/uap10.0.16299/InTheHand.Net.Bluetooth.pri",
+        "lib/uap10.0.16299/InTheHand.Net.Bluetooth.xml",
+        "lib/xamarinios10/InTheHand.Net.Bluetooth.dll",
+        "lib/xamarinios10/InTheHand.Net.Bluetooth.xml"
+      ]
+    },
+    "ManagedNativeWifi/3.0.2": {
+      "sha512": "HgeZhoFiFBYcEkhs8yZdq26Ow8oZGG3uoCBEGw2HmjpCsMNGb3nWlN0vQZwCKVPy0NImaaYAzeCNMzqhuBkuWg==",
+      "type": "package",
+      "path": "managednativewifi/3.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net8.0/ManagedNativeWifi.dll",
+        "lib/net8.0/ManagedNativeWifi.xml",
+        "lib/netstandard2.0/ManagedNativeWifi.dll",
+        "lib/netstandard2.0/ManagedNativeWifi.xml",
+        "managednativewifi.3.0.2.nupkg.sha512",
+        "managednativewifi.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
@@ -2556,10 +2652,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
-      "sha512": "nroMDjS7hNBPtkZqVBbSiQaQjWRDxITI8Y7XnDs97rqG3EbzVTNLZQf7bIeUJcaHOV8bca47s1Uxq94+2oGdxA==",
+    "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+      "sha512": "dL0QGToTxggRLMYY4ZYX5AMwBb+byQBd/5dMiZE07Nv73o6I5Are3C7eQTh7K2+A4ct0PVISSr7TZANbiNb2yQ==",
       "type": "package",
-      "path": "microsoft.extensions.logging.abstractions/8.0.2",
+      "path": "microsoft.extensions.logging.abstractions/8.0.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2624,7 +2720,7 @@
         "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.xml",
-        "microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+        "microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
         "microsoft.extensions.logging.abstractions.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -4107,13 +4203,19 @@
       "type": "project",
       "path": "../Tracer.Infrastructure/Tracer.Infrastructure.csproj",
       "msbuildProject": "../Tracer.Infrastructure/Tracer.Infrastructure.csproj"
+    },
+    "Tracer.Radio.Windows/1.0.0": {
+      "type": "project",
+      "path": "../Tracer.Radio.Windows/Tracer.Radio.Windows.csproj",
+      "msbuildProject": "../Tracer.Radio.Windows/Tracer.Radio.Windows.csproj"
     }
   },
   "projectFileDependencyGroups": {
-    "net8.0": [
+    "net8.0-windows10.0.19041": [
       "Microsoft.EntityFrameworkCore.Design >= 8.0.12",
       "Tracer.Core >= 1.0.0",
-      "Tracer.Infrastructure >= 1.0.0"
+      "Tracer.Infrastructure >= 1.0.0",
+      "Tracer.Radio.Windows >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -4138,21 +4240,24 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net8.0"
+        "net8.0-windows10.0.19041.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net8.0-windows10.0.19041": {
+          "targetAlias": "net8.0-windows10.0.19041.0",
           "projectReferences": {
             "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Core\\Tracer.Core.csproj": {
               "projectPath": "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Core\\Tracer.Core.csproj"
             },
             "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Infrastructure\\Tracer.Infrastructure.csproj": {
               "projectPath": "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Infrastructure\\Tracer.Infrastructure.csproj"
+            },
+            "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Radio.Windows\\Tracer.Radio.Windows.csproj": {
+              "projectPath": "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Radio.Windows\\Tracer.Radio.Windows.csproj"
             }
           }
         }
@@ -4170,8 +4275,8 @@
       "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
-      "net8.0": {
-        "targetAlias": "net8.0",
+      "net8.0-windows10.0.19041": {
+        "targetAlias": "net8.0-windows10.0.19041.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -4191,11 +4296,20 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.Windows.SDK.NET.Ref",
+            "version": "[10.0.19041.57, 10.0.19041.57]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
           },
           "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.Windows.SDK.NET.Ref.Windows": {
             "privateAssets": "all"
           }
         },

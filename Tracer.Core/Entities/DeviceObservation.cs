@@ -1,3 +1,5 @@
+using Tracer.Core.Enums;
+
 namespace Tracer.Core.Entities;
 
 public sealed class DeviceObservation
@@ -17,5 +19,11 @@ public sealed class DeviceObservation
     public int? Channel { get; set; }
     public int? SignalStrength { get; set; }
     public bool IsPaired { get; set; }
+    public DeviceType DeviceType { get; set; } = DeviceType.Unknown;
+    public DeviceReputation Reputation { get; set; } = DeviceReputation.Unknown;
+    public int RiskScore { get; set; }
+    public decimal? EstimatedDistanceMeters { get; set; }
+    public MovementTrend MovementTrend { get; set; } = MovementTrend.Stable;
+    public ConnectionState ConnectionState { get; set; } = ConnectionState.Unknown;
     public string? RawPayload { get; set; }
 }

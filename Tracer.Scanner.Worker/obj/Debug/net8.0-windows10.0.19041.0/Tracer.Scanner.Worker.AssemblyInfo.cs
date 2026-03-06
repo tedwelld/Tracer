@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Tracer.Scanner.Worker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2109069615847a6c69ac8952053b5a0736e37d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Tracer.Scanner.Worker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Tracer.Scanner.Worker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,192 @@
+@page
+@model ReportsModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Reports</p>
+        <h1>Analytics and exports</h1>
+        <p class="hero-text">
+            Summaries are generated from persisted scans, observations, and alerts so you can review daily and weekly wireless activity.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <article class="stat-card">
+            <span class="stat-label">Daily rows</span>
+            <strong>@Model.Reports.DailyReports.Count</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Weekly rows</span>
+            <strong>@Model.Reports.WeeklyReports.Count</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Top risk devices</span>
+            <strong>@Model.Reports.TopRiskDevices.Count</strong>
+        </article>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>Exports</h2>
+            <span class="panel-kicker">PDF output</span>
+        </div>
+        <div class="report-actions">
+            <a asp-page="/Reports" asp-page-handler="ExportPdf" asp-route-scope="daily" class="button-secondary">Daily PDF</a>
+            <a asp-page="/Reports" asp-page-handler="ExportPdf" asp-route-scope="weekly" class="button-secondary">Weekly PDF</a>
+            <a asp-page="/Reports" asp-page-handler="ExportPdf" asp-route-scope="devices" class="button-primary">Risk devices PDF</a>
+        </div>
+    </div>
+    <p class="muted">PDF export is available now for the daily, weekly, and risk-device report views.</p>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Daily report</h2>
+            <span class="panel-kicker">Last 7 days</span>
+        </div>
+        <div class="table-wrap">
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Scans</th>
+                        <th>Observations</th>
+                        <th>Unique devices</th>
+                        <th>Devices seen</th>
+                        <th>Suspicious</th>
+                        <th>Alerts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Reports.DailyReports)
+                    {
+                        <tr>
+                            <td>@row.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@row.ScanBatches</td>
+                            <td>@row.ObservationCount</td>
+                            <td>@row.UniqueDevices</td>
+                            <td>@row.DevicesSeen</td>
+                            <td>@row.SuspiciousCount</td>
+                            <td>@row.AlertCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Weekly report</h2>
+            <span class="panel-kicker">Last 6 weeks</span>
+        </div>
+        <div class="table-wrap">
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th>Week</th>
+                        <th>Scans</th>
+                        <th>Observations</th>
+                        <th>Unique devices</th>
+                        <th>Suspicious</th>
+                        <th>Alerts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Reports.WeeklyReports)
+                    {
+                        <tr>
+                            <td>@row.WeekStart.ToString("yyyy-MM-dd") to @row.WeekEnd.ToString("yyyy-MM-dd")</td>
+                            <td>@row.ScanBatches</td>
+                            <td>@row.ObservationCount</td>
+                            <td>@row.UniqueDevices</td>
+                            <td>@row.SuspiciousCount</td>
+                            <td>@row.AlertCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Highest risk devices</h2>
+        <span class="panel-kicker">Current reputation database</span>
+    </div>
+    @if (Model.Reports.TopRiskDevices.Count == 0)
+    {
+        <p class="muted">No device intelligence records are stored yet.</p>
+    }
+    else
+    {
+        <div class="risk-device-grid">
+            @foreach (var device in Model.Reports.TopRiskDevices)
+            {
+                <article class="risk-card">
+                    <div class="risk-card-header">
+                        <strong>@device.DeviceLabel</strong>
+                        <span class="risk-score">Risk @device.RiskScore</span>
+                    </div>
+                    <div class="risk-meta">
+                        <span>@device.RadioKind</span>
+                        <span>@(device.VendorName ?? "Unknown vendor")</span>
+                        <span>@device.DeviceType</span>
+                        <span>@device.Reputation</span>
+                    </div>
+                    <p class="muted">@(device.Recommendation ?? "No recommendation generated.")</p>
+                    <span class="panel-kicker">Last seen @device.LastSeenUtc.ToLocalTime().ToString("g")</span>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<style>
+    .report-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .risk-device-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .risk-card {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 1rem;
+        background: var(--surface);
+    }
+
+    .risk-card-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .risk-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0.85rem 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-family: var(--mono);
+    }
+
+    .risk-score {
+        color: var(--warn);
+        font-family: var(--mono);
+    }
+</style>

@@ -10,25 +10,98 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Tracer.Web.styles.css" asp-append-version="true" />
     <style>
-        .site-header {
+        .app-shell {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color, #e0e0e0);
+            min-height: 100vh;
         }
 
-        .header-left {
+        .side-panel {
+            position: fixed;
+            inset: 16px auto 16px 16px;
+            z-index: 30;
+            width: 76px;
+            transition: width 0.22s ease, transform 0.22s ease;
+        }
+
+        .side-panel:hover,
+        .side-panel:focus-within {
+            width: 258px;
+        }
+
+        .side-panel-inner {
             display: flex;
+            flex-direction: column;
+            gap: 18px;
+            height: 100%;
+            padding: 18px 16px;
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            background: var(--panel-strong);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .panel-top {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
             align-items: center;
-            gap: 20px;
+        }
+
+        .brand-cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         .brand-mark {
-            font-size: 1.5rem;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
             text-decoration: none;
-            color: #333;
+            color: var(--text);
+            line-height: 1;
+            overflow: hidden;
+        }
+
+        .brand-mark-short,
+        .brand-mark-full {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .brand-mark-full {
+            opacity: 0;
+            max-width: 0;
+            overflow: hidden;
+            transition: opacity 0.18s ease, max-width 0.18s ease;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 44px;
+            min-height: 44px;
+            padding: 0.65rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            line-height: 1;
+            white-space: nowrap;
         }
 
         .header-copy {
@@ -36,55 +109,308 @@
             flex-direction: column;
             gap: 2px;
             font-size: 0.85rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .nav-links {
             display: flex;
-            gap: 20px;
-            align-items: center;
+            flex-direction: column;
+            gap: 8px;
+            align-items: stretch;
+            width: 100%;
         }
 
         .nav-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             text-decoration: none;
-            color: #333;
+            color: var(--muted);
             font-weight: 500;
-            transition: color 0.2s;
+            padding: 12px 14px;
+            border-radius: 16px;
+            transition: color 0.2s, background-color 0.2s;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
-            color: #007bff;
+            color: var(--accent);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .nav-links a.active {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 2px;
+            color: var(--accent);
+            background: rgba(149, 255, 183, 0.12);
+        }
+
+        .nav-links a span,
+        .logout-button span,
+        .admin-badge span,
+        .brand-mark-full {
+            opacity: 0;
+            max-width: 0;
+            overflow: hidden;
+            transition: opacity 0.18s ease, max-width 0.18s ease;
+        }
+
+        .side-panel:hover .nav-links a span,
+        .side-panel:hover .logout-button span,
+        .side-panel:hover .admin-badge span,
+        .side-panel:hover .brand-mark-full,
+        .side-panel:focus-within .nav-links a span,
+        .side-panel:focus-within .logout-button span,
+        .side-panel:focus-within .admin-badge span,
+        .side-panel:focus-within .brand-mark-full {
+            opacity: 1;
+            max-width: 220px;
+        }
+
+        .side-panel:hover .panel-top,
+        .side-panel:hover .brand-cluster,
+        .side-panel:focus-within .panel-top,
+        .side-panel:focus-within .brand-cluster {
+            align-items: flex-start;
+        }
+
+        .side-panel:hover .nav-links a,
+        .side-panel:hover .logout-button,
+        .side-panel:hover .admin-badge,
+        .side-panel:focus-within .nav-links a,
+        .side-panel:focus-within .logout-button,
+        .side-panel:focus-within .admin-badge {
+            justify-content: flex-start;
+        }
+
+        .side-panel:hover .admin-badge,
+        .side-panel:focus-within .admin-badge {
+            width: fit-content;
+            padding-inline: 12px;
+        }
+
+        .side-panel:hover .brand-mark,
+        .side-panel:focus-within .brand-mark {
+            width: auto;
+            padding: 0 0.9rem;
+            gap: 0.55rem;
+        }
+
+        .side-panel:hover .brand-mark-short,
+        .side-panel:focus-within .brand-mark-short {
+            display: none;
+        }
+
+        .panel-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .app-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex: 0 0 auto;
+        }
+
+        .footer-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex: 0 0 auto;
+        }
+
+        .logout-form {
+            margin: 0;
+            width: 100%;
+        }
+
+        .logout-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        .page-shell {
+            width: min(1180px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 1.5rem 0 3rem;
+            padding-left: 98px;
+        }
+
+        .site-footer {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @@media (max-width: 900px) {
+            .app-shell {
+                display: block;
+            }
+
+            .side-panel {
+                position: sticky;
+                inset: 0;
+                width: auto;
+                margin: 1rem;
+            }
+
+            .side-panel:hover,
+            .side-panel:focus-within {
+                width: auto;
+            }
+
+            .side-panel-inner {
+                gap: 14px;
+            }
+
+            .nav-links {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .nav-links a span,
+            .logout-button span,
+            .admin-badge span,
+            .brand-mark-full {
+                opacity: 1;
+                max-width: 220px;
+            }
+
+            .page-shell {
+                width: min(1180px, calc(100% - 2rem));
+                margin: 0 auto;
+                padding: 0 0 3rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="page-shell">
-        <header class="site-header">
-            <div class="header-left">
-                <a class="brand-mark" asp-area="" asp-page="/Index">Tracer</a>
-                <div class="header-copy">
-                    <span>Wi-Fi + Bluetooth scanner</span>
-                    <span>SQL Server backed</span>
+    <svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+        <symbol id="icon-user" viewBox="0 0 24 24">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
+        </symbol>
+        <symbol id="icon-dashboard" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3Zm10 8h8v-6h-8ZM3 21h8v-6H3Zm10-8h8V3h-8Z" />
+        </symbol>
+        <symbol id="icon-wifi" viewBox="0 0 24 24">
+            <path d="M12 18.5a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 12 18.5Zm0-4.5a6.84 6.84 0 0 0-4.95 2.1l1.42 1.42a4.86 4.86 0 0 1 7.06 0l1.42-1.42A6.84 6.84 0 0 0 12 14Zm0-4.5a11.23 11.23 0 0 0-7.95 3.3l1.41 1.41a9.25 9.25 0 0 1 13.08 0l1.41-1.41A11.23 11.23 0 0 0 12 9.5Zm0-4.5A15.72 15.72 0 0 0 .93 9.07l1.41 1.41a13.73 13.73 0 0 1 19.32 0l1.41-1.41A15.72 15.72 0 0 0 12 5Z" />
+        </symbol>
+        <symbol id="icon-bluetooth" viewBox="0 0 24 24">
+            <path d="m12 3 5 5-4 4 4 4-5 5v-6.59L8.41 18 7 16.59 10.59 13 7 9.41 8.41 8 12 11.59Zm2.17 5L14 7.83v3.34Zm0 8L14 14.83v3.34Z" />
+        </symbol>
+        <symbol id="icon-key" viewBox="0 0 24 24">
+            <path d="M7 14a5 5 0 1 1 4.9-6h9.6v4h-2v2h-2v2h-3.6A5 5 0 0 1 7 14Zm0-2a3 3 0 1 0-3-3 3 3 0 0 0 3 3Z" />
+        </symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24">
+            <path d="m19.14 12.94.04-.94-.04-.94 2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.23 7.23 0 0 0-1.63-.94L14.4 2.8a.49.49 0 0 0-.49-.4h-3.82a.49.49 0 0 0-.49.4L9.25 5.32a7.23 7.23 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58-.04.94.04.94-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96a7.23 7.23 0 0 0 1.63.94l.35 2.52a.49.49 0 0 0 .49.4h3.82a.49.49 0 0 0 .49-.4l.35-2.52a7.23 7.23 0 0 0 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64ZM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z" />
+        </symbol>
+        <symbol id="icon-monitoring" viewBox="0 0 24 24">
+            <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-6v2h3v2H7v-2h3v-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v8h14V7Zm2 5h2.2l1.4-2.8L13 14l1.7-3H17" />
+        </symbol>
+        <symbol id="icon-report" viewBox="0 0 24 24">
+            <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5ZM8 12h8v2H8Zm0 4h8v2H8Zm0-8h4v2H8Z" />
+        </symbol>
+        <symbol id="icon-location" viewBox="0 0 24 24">
+            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z" />
+        </symbol>
+        <symbol id="icon-phone" viewBox="0 0 24 24">
+            <path d="m6.62 10.79 2.59-.3a1 1 0 0 1 1 .57l1.2 2.4a1 1 0 0 1-.23 1.16l-1.27 1.27a15.05 15.05 0 0 0 6.2 6.2l1.27-1.27a1 1 0 0 1 1.16-.23l2.4 1.2a1 1 0 0 1 .57 1l-.3 2.59a1 1 0 0 1-1 .89A17 17 0 0 1 3 5.79a1 1 0 0 1 .89-1Z" />
+        </symbol>
+    </svg>
+    <div class="app-shell">
+        <aside class="side-panel" aria-label="Primary navigation">
+            <div class="side-panel-inner">
+                <div class="panel-top">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="admin-badge">
+                            <svg class="app-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+                            <span>@User.Identity.Name</span>
+                        </div>
+                    }
+                    <div class="brand-cluster">
+                        <a class="brand-mark" asp-area="" asp-page="/Index">
+                            <span class="brand-mark-short">T</span>
+                            <span class="brand-mark-full">Tracer</span>
+                        </a>
+                    </div>
                 </div>
+                <nav class="nav-links">
+                    <a asp-page="/Index" title="Dashboard">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-dashboard"></use></svg>
+                        <span>Dashboard</span>
+                    </a>
+                    <a asp-page="/Wifi" title="Wi-Fi Networks">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-wifi"></use></svg>
+                        <span>Wi-Fi</span>
+                    </a>
+                    <a asp-page="/Bluetooth" title="Bluetooth Devices">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-bluetooth"></use></svg>
+                        <span>Bluetooth</span>
+                    </a>
+                    <a asp-page="/Passwords" title="Saved Passwords">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-key"></use></svg>
+                        <span>Passwords</span>
+                    </a>
+                    <a asp-page="/Settings" title="Scanner Settings">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-settings"></use></svg>
+                        <span>Settings</span>
+                    </a>
+                    <a asp-page="/Monitoring" title="Monitoring">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-monitoring"></use></svg>
+                        <span>Monitoring</span>
+                    </a>
+                    <a asp-page="/Reports" title="Reports">
+                        <svg class="app-icon" aria-hidden="true"><use href="#icon-report"></use></svg>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="panel-bottom">
+                        <form method="post" asp-page="/Account/Logout" class="logout-form">
+                            <button type="submit" class="logout-button">
+                                <svg class="app-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+                                <span>Sign out</span>
+                            </button>
+                        </form>
+                    </div>
+                }
             </div>
-            <nav class="nav-links">
-                <a asp-page="/Index" title="Dashboard">Dashboard</a>
-                <a asp-page="/Wifi" title="Wi-Fi Networks">Wi-Fi</a>
-                <a asp-page="/Bluetooth" title="Bluetooth Devices">Bluetooth</a>
-                <a asp-page="/Passwords" title="Saved Passwords">Passwords</a>
-                <a asp-page="/Settings" title="Scanner Settings">Settings</a>
-            </nav>
-        </header>
+        </aside>
 
-        <main role="main">
-            @RenderBody()
-        </main>
+        <div class="page-shell">
+            <main role="main">
+                @RenderBody()
+            </main>
+
+            <footer class="site-footer">
+                <span>
+                    <svg class="footer-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+                    yourITGuy -Tedweell
+                </span>
+                <span>
+                    <svg class="footer-icon" aria-hidden="true"><use href="#icon-location"></use></svg>
+                    3281 Hlalanikuhle Ext, Hwange -Dete
+                </span>
+                <a href="tel:+263774700574">
+                    <svg class="footer-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>
+                    +263774700574
+                </a>
+            </footer>
+        </div>
     </div>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
