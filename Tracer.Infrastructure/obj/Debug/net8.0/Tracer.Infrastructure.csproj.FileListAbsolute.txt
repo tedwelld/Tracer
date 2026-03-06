@@ -1,0 +1,17 @@
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Infrastructure.deps.json
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Infrastructure.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Infrastructure.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Core.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Core.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.AssemblyInfo.cs
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.I.67F4B920.Up2Date
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\refint\Tracer.Infrastructure.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\ref\Tracer.Infrastructure.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\bin\Debug\net8.0\Tracer.Infrastructure.runtimeconfig.json
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\obj\Debug\net8.0\Tracer.Infrastructure.genruntimeconfig.cache

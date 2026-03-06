@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "dgSpecHash": "eSGRhvtBrGE=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\tedwell_d\\source\\repos\\Tracer\\Tracer.Radio.Windows\\Tracer.Radio.Windows.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\inthehand.net.bluetooth\\4.2.2\\inthehand.net.bluetooth.4.2.2.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\managednativewifi\\3.0.2\\managednativewifi.3.0.2.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0\\microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.configuration.binder\\8.0.0\\microsoft.extensions.configuration.binder.8.0.0.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.3\\microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.options\\8.0.0\\microsoft.extensions.options.8.0.0.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.options.configurationextensions\\8.0.0\\microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "C:\\Users\\tedwell_d\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.57\\microsoft.windows.sdk.net.ref.10.0.19041.57.nupkg.sha512"
+  ],
+  "logs": []
+}

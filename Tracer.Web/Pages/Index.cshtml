@@ -1,0 +1,154 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Tracer Dashboard";
+}
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Tracer</p>
+        <h1>Local Wi-Fi and Bluetooth watch console</h1>
+        <p class="hero-text">
+            Continuous scans run in the worker service, discoveries are stored in SQL Server 2022,
+            and unknown devices generate prompts on this dashboard.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <article class="stat-card">
+            <span class="stat-label">Tracked devices</span>
+            <strong>@Model.Dashboard.TotalTrackedDevices</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Pending alerts</span>
+            <strong>@Model.Dashboard.PendingAlertCount</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Total observations</span>
+            <strong>@Model.Dashboard.TotalObservations</strong>
+        </article>
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Latest scan</h2>
+            <span class="panel-kicker">Background worker</span>
+        </div>
+        @if (Model.Dashboard.LatestScan is null)
+        {
+            <p class="muted">No scans have been persisted yet. Start the worker and refresh this page.</p>
+        }
+        else
+        {
+            <dl class="metrics">
+                <div>
+                    <dt>Completed</dt>
+                    <dd>@Model.Dashboard.LatestScan.CompletedUtc.ToLocalTime().ToString("g")</dd>
+                </div>
+                <div>
+                    <dt>Scanner node</dt>
+                    <dd>@Model.Dashboard.LatestScan.ScannerNode</dd>
+                </div>
+                <div>
+                    <dt>Total</dt>
+                    <dd>@Model.Dashboard.LatestScan.TotalDevices</dd>
+                </div>
+                <div>
+                    <dt>Wi-Fi</dt>
+                    <dd>@Model.Dashboard.LatestScan.WifiDevices</dd>
+                </div>
+                <div>
+                    <dt>Bluetooth</dt>
+                    <dd>@Model.Dashboard.LatestScan.BluetoothDevices</dd>
+                </div>
+            </dl>
+        }
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Pending alerts</h2>
+            <span class="panel-kicker">Prompt queue</span>
+        </div>
+        <div class="alert-stack" id="pending-alerts">
+            @if (Model.Dashboard.PendingAlerts.Count == 0)
+            {
+                <p class="muted">No pending alerts.</p>
+            }
+            else
+            {
+                @foreach (var alert in Model.Dashboard.PendingAlerts)
+                {
+                    <article class="alert-card">
+                        <div>
+                            <p class="alert-title">@alert.Title</p>
+                            <p class="alert-device">@alert.DeviceLabel (@alert.RadioKind)</p>
+                            <p class="alert-message">@alert.Message</p>
+                        </div>
+                        <div class="alert-actions">
+                            <button type="button" class="button-secondary" data-ack-alert="@alert.Id">Acknowledge</button>
+                            <button type="button" class="button-primary" data-know-device="@alert.DeviceId">Mark trusted</button>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Recent devices</h2>
+        <span class="panel-kicker">Latest observations</span>
+    </div>
+    <div class="table-wrap">
+        <table class="device-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Device</th>
+                    <th>Address</th>
+                    <th>Security</th>
+                    <th>Signal</th>
+                    <th>Status</th>
+                    <th>Last seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var device in Model.Dashboard.RecentDevices)
+                {
+                    <tr>
+                        <td>@device.RadioKind</td>
+                        <td>@device.Label</td>
+                        <td>@(device.HardwareAddress ?? "-")</td>
+                        <td>@(device.SecurityType ?? "-")</td>
+                        <td>@(device.SignalStrength?.ToString() ?? "-")</td>
+                        <td>
+                            <span class="pill @(device.IsKnown ? "pill-known" : "pill-alert")">
+                                @(device.IsKnown ? "Trusted" : "Unknown")
+                            </span>
+                            @if (device.IsPaired)
+                            {
+                                <span class="pill pill-paired">Paired</span>
+                            }
+                        </td>
+                        <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="prompt-shell" id="alertPrompt" hidden>
+    <div class="prompt-card">
+        <p class="eyebrow">Live prompt</p>
+        <h2 id="promptTitle">New device alert</h2>
+        <p id="promptMessage"></p>
+        <div class="alert-actions">
+            <button type="button" class="button-secondary" id="promptAcknowledge">Acknowledge</button>
+            <button type="button" class="button-primary" id="promptTrust">Mark trusted</button>
+        </div>
+    </div>
+</section>

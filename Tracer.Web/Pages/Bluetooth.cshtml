@@ -1,0 +1,353 @@
+@page
+@model BluetoothModel
+@{
+    ViewData["Title"] = "Bluetooth Devices";
+}
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Scanner</p>
+        <h1>Bluetooth Devices</h1>
+        <p class="hero-text">
+            View all discovered Bluetooth devices. Edit, delete, or manage device information.
+        </p>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Discovered Bluetooth Devices (@Model.BluetoothDevices.Count)</h2>
+        <span class="panel-kicker">Sorted by last seen</span>
+    </div>
+
+    @if (Model.BluetoothDevices.Count == 0)
+    {
+        <p class="muted">No Bluetooth devices discovered yet. Ensure the scanner is running.</p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th>Device Name</th>
+                        <th>MAC Address</th>
+                        <th>Signal</th>
+                        <th>Paired</th>
+                        <th>Status</th>
+                        <th>Last Seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var device in Model.BluetoothDevices)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@device.DeviceName</strong>
+                                @if (!string.IsNullOrEmpty(device.DisplayName) && device.DisplayName != device.DeviceName)
+                                {
+                                    <br />
+                                    <small>(@device.DisplayName)</small>
+                                }
+                            </td>
+                            <td><code>@device.HardwareAddress</code></td>
+                            <td>
+                                <span class="signal-badge signal-@GetSignalClass(device.SignalStrength)">
+                                    @device.SignalStrength%
+                                </span>
+                            </td>
+                            <td>
+                                @if (device.IsPaired)
+                                {
+                                    <span class="status-badge status-paired">Paired</span>
+                                }
+                                else
+                                {
+                                    <span class="muted">Unpaired</span>
+                                }
+                            </td>
+                            <td>
+                                @if (device.IsKnown)
+                                {
+                                    <span class="status-badge status-known">Known</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-unknown">Unknown</span>
+                                }
+                            </td>
+                            <td>@device.LastSeenUtc.ToLocalTime().ToString("g")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button type="button" class="button-small button-secondary" data-edit-device="@device.Id">Edit</button>
+                                    <button type="button" class="button-small button-danger" data-delete-device="@device.Id">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<dialog id="edit-device-dialog" class="device-dialog">
+    <div class="dialog-content">
+        <h3>Edit Bluetooth Device</h3>
+        
+        <div class="form-group">
+            <label>Device Name</label>
+            <input type="text" id="edit-device-name" class="form-input" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Display Name</label>
+            <input type="text" id="edit-display-name" class="form-input" placeholder="e.g., My Headphones" />
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="edit-is-known" /> Mark as Known
+            </label>
+        </div>
+
+        <div class="dialog-actions">
+            <button type="button" class="button-primary" id="save-device-btn">Save Changes</button>
+            <button type="button" class="button-secondary" id="cancel-edit-btn">Cancel</button>
+        </div>
+    </div>
+</dialog>
+
+<style>
+    .table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e0e0e0);
+    }
+
+    .device-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+
+    .device-table thead {
+        background-color: var(--bg-secondary, #f5f5f5);
+    }
+
+    .device-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-color, #e0e0e0);
+    }
+
+    .device-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+    }
+
+    .device-table tbody tr:hover {
+        background-color: var(--bg-hover, #fafafa);
+    }
+
+    .signal-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .signal-strong {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .signal-medium {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .signal-weak {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .status-known {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-unknown {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-paired {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .button-small {
+        padding: 4px 12px;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .button-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .button-secondary:hover {
+        background-color: #d0d0d0;
+    }
+
+    .button-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .button-danger:hover {
+        background-color: #f5c6cb;
+    }
+
+    .device-dialog {
+        border: 1px solid var(--border-color, #e0e0e0);
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 500px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .device-dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .dialog-content h3 {
+        margin: 0 0 20px 0;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color, #e0e0e0);
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+
+    .form-input:read-only {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .dialog-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .button-primary {
+        background-color: #007bff;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .button-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<script>
+    function GetSignalClass(signal) {
+        if (signal >= 70) return 'strong';
+        if (signal >= 40) return 'medium';
+        return 'weak';
+    }
+
+    const dialog = document.getElementById('edit-device-dialog');
+    let currentDeviceId = null;
+
+    document.addEventListener('click', async (e) => {
+        if (e.target.dataset.editDevice) {
+            currentDeviceId = e.target.dataset.editDevice;
+            const row = e.target.closest('tr');
+            document.getElementById('edit-device-name').value = row.querySelector('strong').textContent;
+            dialog.showModal();
+        }
+
+        if (e.target.dataset.deleteDevice) {
+            const deviceId = e.target.dataset.deleteDevice;
+            if (confirm('Are you sure you want to delete this device?')) {
+                await fetch(`/api/devices/${deviceId}`, { method: 'DELETE' });
+                location.reload();
+            }
+        }
+    });
+
+    document.getElementById('save-device-btn').addEventListener('click', async () => {
+        const displayName = document.getElementById('edit-display-name').value;
+        const isKnown = document.getElementById('edit-is-known').checked;
+
+        const response = await fetch(`/api/devices/${currentDeviceId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayName, isKnown })
+        });
+
+        if (response.ok) {
+            location.reload();
+        }
+    });
+
+    document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+        dialog.close();
+    });
+</script>
+
+@functions {
+    string GetSignalClass(int signal) {
+        return signal >= 70 ? "strong" : signal >= 40 ? "medium" : "weak";
+    }
+}

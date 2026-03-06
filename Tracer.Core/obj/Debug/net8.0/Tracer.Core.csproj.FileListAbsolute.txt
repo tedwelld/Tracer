@@ -1,0 +1,11 @@
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\bin\Debug\net8.0\Tracer.Core.deps.json
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\bin\Debug\net8.0\Tracer.Core.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\bin\Debug\net8.0\Tracer.Core.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.AssemblyInfoInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.AssemblyInfo.cs
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.csproj.CoreCompileInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\refint\Tracer.Core.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\Tracer.Core.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Core\obj\Debug\net8.0\ref\Tracer.Core.dll

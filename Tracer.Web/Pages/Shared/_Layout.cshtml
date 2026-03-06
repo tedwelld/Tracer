@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Tracer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Tracer.Web.styles.css" asp-append-version="true" />
+    <style>
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand-mark {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .header-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #007bff;
+        }
+
+        .nav-links a.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="site-header">
+            <div class="header-left">
+                <a class="brand-mark" asp-area="" asp-page="/Index">Tracer</a>
+                <div class="header-copy">
+                    <span>Wi-Fi + Bluetooth scanner</span>
+                    <span>SQL Server backed</span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a asp-page="/Index" title="Dashboard">Dashboard</a>
+                <a asp-page="/Wifi" title="Wi-Fi Networks">Wi-Fi</a>
+                <a asp-page="/Bluetooth" title="Bluetooth Devices">Bluetooth</a>
+                <a asp-page="/Passwords" title="Saved Passwords">Passwords</a>
+                <a asp-page="/Settings" title="Scanner Settings">Settings</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

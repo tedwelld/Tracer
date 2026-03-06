@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Tracer.Core/Tracer.Core.csproj" />
+  <Project Path="Tracer.Infrastructure/Tracer.Infrastructure.csproj" />
+  <Project Path="Tracer.Radio.Windows/Tracer.Radio.Windows.csproj" />
+  <Project Path="Tracer.Scanner.Worker/Tracer.Scanner.Worker.csproj" />
+  <Project Path="Tracer.Web/Tracer.Web.csproj" />
+</Solution>

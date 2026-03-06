@@ -1,0 +1,15 @@
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\bin\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.deps.json
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\bin\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\bin\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\bin\Debug\net8.0-windows10.0.19041.0\Tracer.Core.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\bin\Debug\net8.0-windows10.0.19041.0\Tracer.Core.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.csproj.AssemblyReference.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.AssemblyInfoInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.AssemblyInfo.cs
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.csproj.CoreCompileInputs.cache
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.R.0F7DAE5F.Up2Date
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\refint\Tracer.Radio.Windows.dll
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\Tracer.Radio.Windows.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Radio.Windows\obj\Debug\net8.0-windows10.0.19041.0\ref\Tracer.Radio.Windows.dll
