@@ -1,5 +1,5 @@
 # Tracer
-
+   
 Tracer is a Windows-focused Wi-Fi and Bluetooth monitoring platform built on .NET 8. It scans nearby radios, stores observations in SQL Server, scores device risk, raises alerts, exposes a secured Razor Pages dashboard, and now includes a Swagger UI surface for API testing.
 
 ## Current capabilities
