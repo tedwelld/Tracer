@@ -18,5 +18,8 @@ public sealed class RuntimeSettings
     public bool AutoLogDevices { get; set; } = true;
     public bool EnablePacketMetadataCapture { get; set; } = true;
     public bool EnableTrafficAnalysis { get; set; } = false;
+    public int ObservationRetentionDays { get; set; } = 90;
+    public int AlertRetentionDays { get; set; } = 365;
+    public int EventLogRetentionDays { get; set; } = 180;
     public DateTimeOffset LastUpdatedUtc { get; set; } = DateTimeOffset.UtcNow;
 }

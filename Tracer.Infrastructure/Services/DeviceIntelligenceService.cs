@@ -7,31 +7,12 @@ namespace Tracer.Infrastructure.Services;
 
 public sealed class DeviceIntelligenceService
 {
-    private static readonly Dictionary<string, string> VendorPrefixes = new(StringComparer.OrdinalIgnoreCase)
+    private readonly OuiVendorLookupService _ouiVendorLookupService;
+
+    public DeviceIntelligenceService(OuiVendorLookupService ouiVendorLookupService)
     {
-        ["00:1A:11"] = "Google",
-        ["00:1B:63"] = "Apple",
-        ["00:1D:D8"] = "Cisco",
-        ["00:25:9C"] = "Apple",
-        ["00:26:BB"] = "Samsung",
-        ["00:50:56"] = "VMware",
-        ["04:52:C7"] = "Microsoft",
-        ["08:00:27"] = "Oracle VirtualBox",
-        ["18:65:90"] = "Samsung",
-        ["28:CF:DA"] = "Apple",
-        ["3C:5A:B4"] = "Google",
-        ["40:B0:76"] = "Intel",
-        ["58:CB:52"] = "Google",
-        ["68:54:5A"] = "Intel",
-        ["74:E5:43"] = "Apple",
-        ["7C:B0:C2"] = "Samsung",
-        ["A4:83:E7"] = "Apple",
-        ["B8:27:EB"] = "Raspberry Pi",
-        ["C0:25:E9"] = "Apple",
-        ["D8:3A:DD"] = "Google",
-        ["DC:A6:32"] = "Raspberry Pi",
-        ["F4:F5:D8"] = "Apple"
-    };
+        _ouiVendorLookupService = ouiVendorLookupService;
+    }
 
     public DeviceAssessment Assess(
         RadioDeviceSnapshot snapshot,
@@ -40,7 +21,7 @@ public sealed class DeviceIntelligenceService
         bool isRogueWifiCandidate)
     {
         var vendorPrefix = ExtractVendorPrefix(snapshot.HardwareAddress);
-        var vendorName = ResolveVendorName(vendorPrefix);
+        var vendorName = _ouiVendorLookupService.ResolveVendorName(vendorPrefix);
         var deviceType = ClassifyDevice(snapshot, vendorName);
         var connectionState = DetermineConnectionState(snapshot);
         var estimatedDistanceMeters = EstimateDistance(snapshot.SignalStrength, settings.ApproximateRangeMeters);
@@ -119,20 +100,7 @@ public sealed class DeviceIntelligenceService
     }
 
     private static string? ExtractVendorPrefix(string? hardwareAddress)
-    {
-        if (string.IsNullOrWhiteSpace(hardwareAddress))
-        {
-            return null;
-        }
-
-        var parts = hardwareAddress.Split(':', '-', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length < 3
-            ? null
-            : string.Join(':', parts.Take(3)).ToUpperInvariant();
-    }
-
-    private static string? ResolveVendorName(string? vendorPrefix)
-        => vendorPrefix is not null && VendorPrefixes.TryGetValue(vendorPrefix, out var vendorName) ? vendorName : null;
+        => OuiVendorLookupService.NormalizePrefix(hardwareAddress);
 
     private static DeviceType ClassifyDevice(RadioDeviceSnapshot snapshot, string? vendorName)
     {

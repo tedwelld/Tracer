@@ -17,13 +17,20 @@ public static class ServiceCollectionExtensions
 
         services.Configure<ScannerOptions>(configuration.GetSection(ScannerOptions.SectionName));
         services.Configure<AlertOptions>(configuration.GetSection(AlertOptions.SectionName));
+        services.Configure<NotificationOptions>(configuration.GetSection(NotificationOptions.SectionName));
+        services.Configure<OuiVendorOptions>(configuration.GetSection(OuiVendorOptions.SectionName));
 
         services.AddDbContextFactory<TracerDbContext>(options =>
             options.UseSqlServer(connectionString));
+        services.AddHttpClient();
 
         services.AddSingleton<RuntimeSettingsService>();
         services.AddSingleton<IRuntimeSettingsService>(sp => sp.GetRequiredService<RuntimeSettingsService>());
         services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
+        services.AddSingleton<AdminAuditService>();
+        services.AddSingleton<AlertNotificationService>();
+        services.AddSingleton<DataRetentionService>();
+        services.AddSingleton<OuiVendorLookupService>();
         services.AddSingleton<DeviceIntelligenceService>();
         services.AddSingleton<IScanCoordinator, ScanCoordinator>();
 

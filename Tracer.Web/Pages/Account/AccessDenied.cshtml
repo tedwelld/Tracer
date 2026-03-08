@@ -1,0 +1,38 @@
+@page
+@model Tracer.Web.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Authorization</p>
+        <h1>Access denied</h1>
+        <p class="hero-text">
+            Your current account does not have permission to open this page.
+        </p>
+    </div>
+</section>
+
+<section class="panel">
+    <p class="status-copy">
+        If you were already signed in before the new role policies were added, sign out and sign in again so your session picks up the current permissions.
+    </p>
+    <div class="action-row">
+        <a asp-page="/Index" class="button-secondary">Back to dashboard</a>
+        <a asp-page="/Account/Login" asp-route-returnUrl="@Model.ReturnUrl" class="button-primary">Sign in again</a>
+    </div>
+</section>
+
+<style>
+    .status-copy {
+        margin: 0 0 1rem;
+        color: var(--muted);
+    }
+
+    .action-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+</style>

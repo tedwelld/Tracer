@@ -40,3 +40,11 @@ c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Infrastructur
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Infrastructure.runtimeconfig.json
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Infrastructure.dll
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Infrastructure.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Infrastructure.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Infrastructure.runtimeconfig.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Infrastructure.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Infrastructure.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Infrastructure.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Infrastructure.runtimeconfig.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Infrastructure.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Infrastructure.pdb

@@ -10,6 +10,7 @@ namespace Tracer.Infrastructure.Services;
 public sealed class DatabaseInitializer(
     IDbContextFactory<TracerDbContext> dbContextFactory,
     RuntimeSettingsService runtimeSettingsService,
+    OuiVendorLookupService ouiVendorLookupService,
     ILogger<DatabaseInitializer> logger) : IDatabaseInitializer
 {
     private const string SeededAdminUserName = "admin";
@@ -22,6 +23,8 @@ public sealed class DatabaseInitializer(
         await dbContext.Database.MigrateAsync(cancellationToken);
         await SeedAdminAsync(dbContext, cancellationToken);
         await SeedRuntimeSettingsAsync(dbContext, cancellationToken);
+        await SeedOuiVendorsAsync(dbContext, cancellationToken);
+        await ouiVendorLookupService.WarmCacheAsync(cancellationToken);
     }
 
     private async Task SeedAdminAsync(TracerDbContext dbContext, CancellationToken cancellationToken)
@@ -40,6 +43,7 @@ public sealed class DatabaseInitializer(
             UserName = SeededAdminUserName,
             NormalizedUserName = normalizedUserName,
             PasswordHash = AdminPasswordHasher.HashPassword(SeededAdminPassword),
+            Role = Tracer.Core.Enums.AdminRole.SuperAdmin,
             IsActive = true
         });
 
@@ -63,5 +67,17 @@ public sealed class DatabaseInitializer(
         dbContext.RuntimeSettings.Add(settings);
         await dbContext.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Seeded runtime scanner settings.");
+    }
+
+    private async Task SeedOuiVendorsAsync(TracerDbContext dbContext, CancellationToken cancellationToken)
+    {
+        if (await dbContext.OuiVendors.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        dbContext.OuiVendors.AddRange(OuiVendorLookupService.GetFallbackSeedVendors());
+        await dbContext.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Seeded fallback OUI vendor cache.");
     }
 }

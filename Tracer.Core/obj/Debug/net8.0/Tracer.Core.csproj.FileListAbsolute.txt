@@ -28,3 +28,9 @@ c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\web\Tracer.Core.pdb
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Core.deps.json
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Core.dll
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Core.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Core.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Core.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Core.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Core.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Core.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Core.pdb

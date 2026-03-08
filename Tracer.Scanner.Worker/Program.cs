@@ -12,6 +12,8 @@ builder.Services.AddWindowsService(options =>
 builder.Services.AddTracerInfrastructure(builder.Configuration);
 builder.Services.AddTracerWindowsRadioScanning();
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<DataRetentionWorker>();
+builder.Services.AddHostedService<OuiVendorRefreshWorker>();
 
 var host = builder.Build();
 await host.RunAsync();

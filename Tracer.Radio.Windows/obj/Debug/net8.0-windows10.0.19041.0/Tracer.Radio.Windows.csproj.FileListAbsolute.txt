@@ -23,3 +23,9 @@ c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\worker\Tracer.Radio.Windows.pdb
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Radio.Windows.deps.json
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Radio.Windows.dll
 c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-web\Tracer.Radio.Windows.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Radio.Windows.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Radio.Windows.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-settings\Tracer.Radio.Windows.pdb
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Radio.Windows.deps.json
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Radio.Windows.dll
+c:\Users\tedwell_d\source\repos\Tracer\artifacts\verify-swagger\Tracer.Radio.Windows.pdb

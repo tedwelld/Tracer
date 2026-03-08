@@ -6,14 +6,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Tracer.Core.Enums;
 using Tracer.Core.Security;
 using Tracer.Infrastructure.Persistence;
+using Tracer.Infrastructure.Services;
 
 namespace Tracer.Web.Pages.Account;
 
 [AllowAnonymous]
-public sealed class LoginModel(IDbContextFactory<TracerDbContext> dbContextFactory) : PageModel
+public sealed class LoginModel(
+    IDbContextFactory<TracerDbContext> dbContextFactory,
+    AdminAuditService adminAuditService) : PageModel
 {
+    private const int MaxFailedAttempts = 5;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
@@ -41,25 +48,60 @@ public sealed class LoginModel(IDbContextFactory<TracerDbContext> dbContextFacto
         }
 
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         var normalizedUserName = Input.UserName.Trim().ToUpperInvariant();
         var admin = await dbContext.AdminUsers
             .SingleOrDefaultAsync(x => x.NormalizedUserName == normalizedUserName, cancellationToken);
 
-        if (admin is null || !admin.IsActive || !AdminPasswordHasher.VerifyHashedPassword(admin.PasswordHash, Input.Password))
+        if (admin is null)
         {
+            await adminAuditService.WriteLoginAttemptAsync(Input.UserName.Trim(), ipAddress, userAgent, false, "Unknown username.", null, cancellationToken);
             ModelState.AddModelError(string.Empty, "Invalid admin credentials.");
             return Page();
         }
 
+        if (!admin.IsActive)
+        {
+            await adminAuditService.WriteLoginAttemptAsync(admin.UserName, ipAddress, userAgent, false, "Account is disabled.", admin.Id, cancellationToken);
+            ModelState.AddModelError(string.Empty, "Invalid admin credentials.");
+            return Page();
+        }
+
+        if (admin.LockedUntilUtc.HasValue && admin.LockedUntilUtc > DateTimeOffset.UtcNow)
+        {
+            await adminAuditService.WriteLoginAttemptAsync(admin.UserName, ipAddress, userAgent, false, "Account is temporarily locked.", admin.Id, cancellationToken);
+            ModelState.AddModelError(string.Empty, $"Account locked until {admin.LockedUntilUtc.Value.LocalDateTime:g}.");
+            return Page();
+        }
+
+        if (!AdminPasswordHasher.VerifyHashedPassword(admin.PasswordHash, Input.Password))
+        {
+            admin.FailedLoginCount += 1;
+            if (admin.FailedLoginCount >= MaxFailedAttempts)
+            {
+                admin.LockedUntilUtc = DateTimeOffset.UtcNow.Add(LockoutDuration);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await adminAuditService.WriteLoginAttemptAsync(admin.UserName, ipAddress, userAgent, false, "Invalid password.", admin.Id, cancellationToken);
+            ModelState.AddModelError(string.Empty, "Invalid admin credentials.");
+            return Page();
+        }
+
+        admin.FailedLoginCount = 0;
+        admin.LockedUntilUtc = null;
         admin.LastLoginUtc = DateTimeOffset.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
+        await adminAuditService.WriteLoginAttemptAsync(admin.UserName, ipAddress, userAgent, true, null, admin.Id, cancellationToken);
 
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
             new Claim(ClaimTypes.Name, admin.UserName),
-            new Claim(ClaimTypes.Role, "Admin")
+            new Claim(ClaimTypes.Role, admin.Role.ToString()),
+            new Claim("tracer:role", admin.Role.ToString())
         };
 
         var principal = new ClaimsPrincipal(

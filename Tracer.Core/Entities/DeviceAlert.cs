@@ -10,6 +10,11 @@ public sealed class DeviceAlert
     public AlertType AlertType { get; set; }
     public AlertSeverity Severity { get; set; }
     public AlertStatus Status { get; set; } = AlertStatus.Pending;
+    public AlertNotificationStatus NotificationStatus { get; set; } = AlertNotificationStatus.Pending;
+    public int NotificationAttempts { get; set; }
+    public DateTimeOffset? LastNotificationAttemptUtc { get; set; }
+    public DateTimeOffset? NotificationSentUtc { get; set; }
+    public string? LastNotificationError { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset? AcknowledgedUtc { get; set; }
     public string Title { get; set; } = string.Empty;

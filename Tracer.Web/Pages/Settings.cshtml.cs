@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Tracer.Core.Contracts;
@@ -5,6 +6,7 @@ using Tracer.Core.Interfaces;
 
 namespace Tracer.Web.Pages;
 
+[Authorize(Policy = "ManageSettings")]
 public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService) : PageModel
 {
     public ScannerSettingsDto CurrentSettings { get; private set; } = ScannerSettingsDto.Empty;
@@ -12,11 +14,60 @@ public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService
     [BindProperty]
     public ScannerSettingsDto UpdatedSettings { get; set; } = ScannerSettingsDto.Empty;
 
+    [TempData]
+    public string? StatusMessage { get; set; }
+
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
         var settings = await runtimeSettingsService.GetCurrentAsync(cancellationToken);
         CurrentSettings = ScannerSettingsDto.FromSnapshot(settings);
         UpdatedSettings = CurrentSettings;
+    }
+
+    public async Task<IActionResult> OnPostAsync(
+        int rangeMeters,
+        bool enableWifi,
+        bool enableBluetooth,
+        int scanIntervalSeconds,
+        int wifiScanTimeoutSeconds,
+        int minimumWifiSignalQuality,
+        bool createAlertsForUnknownDevices,
+        int returnAlertThresholdMinutes,
+        bool enableRogueWifiDetection,
+        bool enableUnknownBluetoothConnectionAlerts,
+        bool enableAutomaticRecommendations,
+        int riskAlertThreshold,
+        bool autoLogDevices,
+        bool enablePacketMetadataCapture,
+        bool enableTrafficAnalysis,
+        int observationRetentionDays,
+        int alertRetentionDays,
+        int eventLogRetentionDays,
+        CancellationToken cancellationToken)
+    {
+        var snapshot = new RuntimeSettingsSnapshot(
+            enableWifi,
+            enableBluetooth,
+            Math.Clamp(scanIntervalSeconds, 5, 300),
+            Math.Clamp(rangeMeters, 1, 20),
+            Math.Clamp(wifiScanTimeoutSeconds, 3, 30),
+            Math.Clamp(minimumWifiSignalQuality, 0, 100),
+            createAlertsForUnknownDevices,
+            Math.Clamp(returnAlertThresholdMinutes, 15, 1440),
+            enableRogueWifiDetection,
+            enableUnknownBluetoothConnectionAlerts,
+            enableAutomaticRecommendations,
+            Math.Clamp(riskAlertThreshold, 10, 100),
+            autoLogDevices,
+            enablePacketMetadataCapture,
+            enableTrafficAnalysis,
+            Math.Max(1, observationRetentionDays),
+            Math.Max(1, alertRetentionDays),
+            Math.Max(1, eventLogRetentionDays));
+
+        await runtimeSettingsService.UpdateAsync(snapshot, cancellationToken);
+        StatusMessage = "Settings saved successfully.";
+        return RedirectToPage();
     }
 
     public sealed record ScannerSettingsDto(
@@ -35,7 +86,10 @@ public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService
         int RiskAlertThreshold,
         bool AutoLogDevices,
         bool EnablePacketMetadataCapture,
-        bool EnableTrafficAnalysis)
+        bool EnableTrafficAnalysis,
+        int ObservationRetentionDays,
+        int AlertRetentionDays,
+        int EventLogRetentionDays)
     {
         public static ScannerSettingsDto Empty { get; } = new(
             20,
@@ -53,7 +107,10 @@ public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService
             60,
             true,
             true,
-            false);
+            false,
+            90,
+            365,
+            180);
 
         public static ScannerSettingsDto FromSnapshot(RuntimeSettingsSnapshot snapshot)
         {
@@ -73,7 +130,10 @@ public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService
                 snapshot.RiskAlertThreshold,
                 snapshot.AutoLogDevices,
                 snapshot.EnablePacketMetadataCapture,
-                snapshot.EnableTrafficAnalysis);
+                snapshot.EnableTrafficAnalysis,
+                snapshot.ObservationRetentionDays,
+                snapshot.AlertRetentionDays,
+                snapshot.EventLogRetentionDays);
         }
 
         public RuntimeSettingsSnapshot ToSnapshot()
@@ -93,7 +153,10 @@ public sealed class SettingsModel(IRuntimeSettingsService runtimeSettingsService
                 RiskAlertThreshold,
                 AutoLogDevices,
                 EnablePacketMetadataCapture,
-                EnableTrafficAnalysis);
+                EnableTrafficAnalysis,
+                ObservationRetentionDays,
+                AlertRetentionDays,
+                EventLogRetentionDays);
         }
     }
 }

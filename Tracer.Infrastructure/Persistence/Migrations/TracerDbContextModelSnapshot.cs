@@ -22,6 +22,60 @@ namespace Tracer.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Tracer.Core.Entities.AdminAuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid?>("AdminUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("EntityId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("CreatedUtc");
+
+                    b.ToTable("AdminAuditLogs");
+                });
+
             modelBuilder.Entity("Tracer.Core.Entities.AdminUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -31,10 +85,16 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("FailedLoginCount")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LastLoginUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LockedUntilUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("NormalizedUserName")
@@ -46,6 +106,11 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -82,10 +147,28 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("DeviceId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTimeOffset?>("LastNotificationAttemptUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastNotificationError")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(1024)
                         .HasColumnType("nvarchar(1024)");
+
+                    b.Property<int>("NotificationAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("NotificationSentUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NotificationStatus")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("Severity")
                         .IsRequired()
@@ -122,12 +205,26 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Channel")
                         .HasColumnType("int");
 
+                    b.Property<string>("ConnectionState")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<Guid>("DeviceId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DeviceType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<decimal?>("EstimatedDistanceMeters")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<string>("FrequencyBand")
                         .HasMaxLength(64)
@@ -144,6 +241,11 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsPaired")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MovementTrend")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("NetworkName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -154,6 +256,14 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<string>("RawPayload")
                         .HasMaxLength(1024)
                         .HasColumnType("nvarchar(1024)");
+
+                    b.Property<string>("Reputation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("RiskScore")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("ScanBatchId")
                         .HasColumnType("uniqueidentifier");
@@ -185,14 +295,28 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Channel")
                         .HasColumnType("int");
 
+                    b.Property<string>("ConnectionState")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("DeviceKey")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("DeviceType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("DisplayName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<decimal?>("EstimatedDistanceMeters")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<DateTimeOffset>("FirstSeenUtc")
                         .HasColumnType("datetimeoffset");
@@ -211,15 +335,27 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsPaired")
                         .HasColumnType("bit");
 
+                    b.Property<DateTimeOffset?>("LastConnectedUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("LastInterfaceName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("LastRecommendation")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<DateTimeOffset>("LastSeenUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<int?>("LastSignalStrength")
                         .HasColumnType("int");
+
+                    b.Property<string>("MovementTrend")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("NetworkName")
                         .HasMaxLength(256)
@@ -234,12 +370,32 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<string>("Reputation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("RiskReasons")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<int>("RiskScore")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityType")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<int>("TotalObservations")
                         .HasColumnType("int");
+
+                    b.Property<string>("VendorName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("VendorPrefix")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.HasKey("Id");
 
@@ -251,17 +407,165 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.ToTable("DiscoveredDevices");
                 });
 
+            modelBuilder.Entity("Tracer.Core.Entities.LoginAuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("AdminUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("CreatedUtc");
+
+                    b.ToTable("LoginAuditLogs");
+                });
+
+            modelBuilder.Entity("Tracer.Core.Entities.OuiVendor", b =>
+                {
+                    b.Property<string>("Prefix")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VendorName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Prefix");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.ToTable("OuiVendors");
+                });
+
+            modelBuilder.Entity("Tracer.Core.Entities.RuntimeSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AlertRetentionDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ApproximateRangeMeters")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("AutoLogDevices")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CreateAlertsForUnknownDevices")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableAutomaticRecommendations")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableBluetooth")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnablePacketMetadataCapture")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableRogueWifiDetection")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableTrafficAnalysis")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableUnknownBluetoothConnectionAlerts")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EnableWifi")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("EventLogRetentionDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("MinimumWifiSignalQuality")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ObservationRetentionDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReturnAlertThresholdMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RiskAlertThreshold")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScanIntervalSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WifiScanTimeoutSeconds")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RuntimeSettings");
+                });
+
             modelBuilder.Entity("Tracer.Core.Entities.ScanBatch", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AdapterStatusSummary")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
                     b.Property<int>("BluetoothDevices")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CompletedUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("DurationMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ErrorCount")
+                        .HasColumnType("int");
+
+                    b.Property<double>("MemoryUsageMb")
+                        .HasColumnType("float");
 
                     b.Property<string>("ScannerNode")
                         .IsRequired()
@@ -270,6 +574,9 @@ namespace Tracer.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("StartedUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SuspiciousDevices")
+                        .HasColumnType("int");
 
                     b.Property<int>("TotalDevices")
                         .HasColumnType("int");
@@ -282,6 +589,72 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.HasIndex("CompletedUtc");
 
                     b.ToTable("ScanBatches");
+                });
+
+            modelBuilder.Entity("Tracer.Core.Entities.ScanEventLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<Guid?>("DeviceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("RadioKind")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid?>("ScanBatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ScannerNode")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedUtc");
+
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("ScanBatchId");
+
+                    b.ToTable("ScanEventLogs");
+                });
+
+            modelBuilder.Entity("Tracer.Core.Entities.AdminAuditLog", b =>
+                {
+                    b.HasOne("Tracer.Core.Entities.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AdminUser");
                 });
 
             modelBuilder.Entity("Tracer.Core.Entities.DeviceAlert", b =>
@@ -314,6 +687,33 @@ namespace Tracer.Infrastructure.Persistence.Migrations
                     b.Navigation("ScanBatch");
                 });
 
+            modelBuilder.Entity("Tracer.Core.Entities.LoginAuditLog", b =>
+                {
+                    b.HasOne("Tracer.Core.Entities.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AdminUser");
+                });
+
+            modelBuilder.Entity("Tracer.Core.Entities.ScanEventLog", b =>
+                {
+                    b.HasOne("Tracer.Core.Entities.DiscoveredDevice", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Tracer.Core.Entities.ScanBatch", "ScanBatch")
+                        .WithMany("EventLogs")
+                        .HasForeignKey("ScanBatchId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Device");
+
+                    b.Navigation("ScanBatch");
+                });
+
             modelBuilder.Entity("Tracer.Core.Entities.DiscoveredDevice", b =>
                 {
                     b.Navigation("Alerts");
@@ -323,6 +723,8 @@ namespace Tracer.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Tracer.Core.Entities.ScanBatch", b =>
                 {
+                    b.Navigation("EventLogs");
+
                     b.Navigation("Observations");
                 });
 #pragma warning restore 612, 618

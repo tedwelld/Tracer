@@ -61,7 +61,10 @@ public sealed class RuntimeSettingsService(
             60,
             true,
             true,
-            false);
+            false,
+            90,
+            365,
+            180);
     }
 
     public static RuntimeSettingsSnapshot Map(RuntimeSettings settings)
@@ -81,7 +84,10 @@ public sealed class RuntimeSettingsService(
             settings.RiskAlertThreshold,
             settings.AutoLogDevices,
             settings.EnablePacketMetadataCapture,
-            settings.EnableTrafficAnalysis);
+            settings.EnableTrafficAnalysis,
+            settings.ObservationRetentionDays,
+            settings.AlertRetentionDays,
+            settings.EventLogRetentionDays);
     }
 
     public static void Apply(RuntimeSettingsSnapshot snapshot, RuntimeSettings settings)
@@ -101,5 +107,8 @@ public sealed class RuntimeSettingsService(
         settings.AutoLogDevices = snapshot.AutoLogDevices;
         settings.EnablePacketMetadataCapture = snapshot.EnablePacketMetadataCapture;
         settings.EnableTrafficAnalysis = snapshot.EnableTrafficAnalysis;
+        settings.ObservationRetentionDays = snapshot.ObservationRetentionDays;
+        settings.AlertRetentionDays = snapshot.AlertRetentionDays;
+        settings.EventLogRetentionDays = snapshot.EventLogRetentionDays;
     }
 }

@@ -1,110 +1,101 @@
 # Tracer
 
-Tracer is a Windows-based local Wi-Fi and Bluetooth monitoring system built on .NET 8. It continuously scans nearby radios, stores discoveries in SQL Server, classifies devices, assigns risk, raises alerts, and exposes a secured Razor Pages dashboard for operators.
+Tracer is a Windows-focused Wi-Fi and Bluetooth monitoring platform built on .NET 8. It scans nearby radios, stores observations in SQL Server, scores device risk, raises alerts, exposes a secured Razor Pages dashboard, and now includes a Swagger UI surface for API testing.
 
-## Current system capabilities
+## Current capabilities
 
-### Core scanning
+### Radio monitoring
 
-- Detects nearby Wi-Fi access points.
-- Detects nearby Bluetooth devices.
-- Runs continuous background scans in `Tracer.Scanner.Worker`.
-- Measures signal strength and stores RSSI-based observations.
-- Persists discoveries, scan batches, alerts, logs, and runtime settings in SQL Server.
+- Continuous Wi-Fi and Bluetooth scanning through `Tracer.Scanner.Worker`
+- Scan batch tracking with duration, adapter summary, memory usage, and error counts
+- Device observation history with RSSI, channel, band, connection state, movement trend, and estimated distance
+- Shared SQL Server persistence across the worker and web app
 
 ### Security and intelligence
 
-- Raises alerts for unknown devices.
-- Allows operators to mark devices as trusted.
-- Detects returned devices after configurable absence.
-- Detects potential rogue Wi-Fi / duplicate SSIDs.
-- Flags unknown Bluetooth devices that appear connected.
-- Computes device risk scores from heuristics.
-- Tracks vendor prefix, vendor name, device type, reputation, connection state, movement trend, and estimated distance.
-- Generates automatic security recommendations for suspicious conditions.
+- Unknown-device alerts
+- Returned-device alerts after configurable absence
+- Rogue Wi-Fi / duplicate SSID detection
+- Unknown Bluetooth connection alerts
+- Risk scoring and recommendations
+- OUI vendor cache with seeded data and optional IEEE CSV refresh
+- Vendor, reputation, device type, connection state, and movement metadata stored on devices and observations
 
-### UI and operations
+### Enterprise and operations features
 
-- Secured admin login for the dashboard.
-- Dashboard charts for Wi-Fi vs Bluetooth totals and connectivity status.
-- Device management pages for Wi-Fi and Bluetooth.
-- Password manager page for stored Wi-Fi credentials.
-- Settings page backed by persisted runtime configuration.
-- Monitoring page for scan diagnostics, event logs, adapter health, and recent observations.
-- Reports page with daily summaries, weekly summaries, and CSV export.
+- Role-aware admin authentication
+- Login auditing and admin action auditing
+- Login lockout after repeated failures
+- Health endpoint at `/health`
+- Retention settings for observations, alerts, and event logs
+- Background retention cleanup worker
+- Background OUI refresh worker
+- Email and webhook alert notification configuration
+- Swagger/OpenAPI UI for API testing
+
+### UI and API
+
+- Dashboard, Wi-Fi, Bluetooth, Passwords, Settings, Monitoring, and Reports pages
+- Persisted settings page with direct form post fallback and API-backed save path
+- Expanded authenticated API for devices, alerts, observations, audit logs, vendor cache status, scan execution, and settings updates
+- Swagger UI at `/swagger`
 
 ## Default admin login
 
-The database initializer seeds a default admin account if one does not already exist:
+The database initializer seeds a default admin account if one does not exist:
 
 - Username: `admin`
 - Password: `Admin@123`
+- Seeded role: `SuperAdmin`
 
-Change this immediately for any environment beyond local development.
+Change this immediately outside local development.
 
 ## Tech stack
 
-- Backend language: `C#`
+- Language: `C#`
 - Runtime: `.NET 8`
 - UI: `ASP.NET Core Razor Pages`
-- Background processing: `.NET Worker Service`
+- API docs/test UI: `Swagger / Swashbuckle`
+- Background host: `.NET Worker Service`
 - ORM: `Entity Framework Core 8`
-- Database:
-  - Development: `SQL Server LocalDB`
-  - Recommended production target: `SQL Server 2022`
+- Database: `SQL Server / LocalDB for development`
 - Wi-Fi scanning: `ManagedNativeWifi`
-- Bluetooth scanning: `InTheHand.Net.Bluetooth` (`32feet.NET`)
-- OS target for active scanning: `Windows`
+- Bluetooth scanning: `InTheHand.Net.Bluetooth`
+- Active scanning target OS: `Windows`
 
-## Solution architecture
+## Solution layout
 
 - `Tracer.Core`
-  - Shared entities, contracts, enums, and security helpers.
+  Shared entities, contracts, enums, options, and security helpers
 - `Tracer.Infrastructure`
-  - EF Core persistence, migrations, database initialization, runtime settings, device intelligence, and scan orchestration.
+  EF Core, migrations, initialization, runtime settings, device intelligence, retention, notifications, OUI lookup, and scan orchestration
 - `Tracer.Radio.Windows`
-  - Windows-specific Wi-Fi and Bluetooth scanner implementations.
+  Windows-specific Wi-Fi and Bluetooth scanner implementations
 - `Tracer.Scanner.Worker`
-  - Background scan host intended for long-running service execution.
+  Long-running scan host plus OUI refresh and retention cleanup workers
 - `Tracer.Web`
-  - Secured operator dashboard, settings UI, monitoring, reports, and API endpoints.
+  Razor Pages UI, authenticated API, health endpoint, and Swagger UI
 
 ## Runtime flow
 
-1. `Tracer.Scanner.Worker` starts.
-2. The worker applies pending EF Core migrations.
-3. Runtime settings are loaded from SQL Server.
-4. Wi-Fi and Bluetooth snapshots are collected on the configured interval.
-5. `ScanCoordinator` deduplicates, evaluates, scores, and persists results.
-6. Alerts and scan event logs are created for unknown, suspicious, rogue, or connected devices.
-7. `Tracer.Web` reads the same database and exposes dashboard, management, monitoring, and reports views.
-8. Operators review devices, acknowledge alerts, and tune scanner behavior from the web UI.
-
-## Project structure
-
-```text
-Tracer
-|
-+-- Tracer.Core
-+-- Tracer.Infrastructure
-|   +-- Persistence
-|   |   +-- TracerDbContext.cs
-|   |   +-- Migrations
-|   +-- Services
-+-- Tracer.Radio.Windows
-|   +-- Services
-+-- Tracer.Scanner.Worker
-+-- Tracer.Web
-    +-- Pages
-    +-- wwwroot
-```
+1. `Tracer.Scanner.Worker` starts and applies pending migrations.
+2. Runtime settings load from SQL Server.
+3. Wi-Fi and Bluetooth scans run on the configured interval.
+4. `ScanCoordinator` deduplicates, assesses, scores, and persists device state.
+5. Alerts and scan event logs are created.
+6. Notification dispatch attempts webhook and/or email delivery for new alerts.
+7. Retention and OUI refresh workers run in the background.
+8. `Tracer.Web` reads the shared database and exposes the dashboard, pages, and API surface.
 
 ## Database model
 
-The current schema includes these primary tables:
+Primary tables now include:
 
 - `AdminUsers`
+- `AdminAuditLogs`
+- `LoginAuditLogs`
 - `RuntimeSettings`
+- `OuiVendors`
 - `DiscoveredDevices`
 - `DeviceObservations`
 - `DeviceAlerts`
@@ -112,25 +103,9 @@ The current schema includes these primary tables:
 - `ScanEventLogs`
 - `__EFMigrationsHistory`
 
-## Key stored device metadata
+## Runtime settings
 
-`DiscoveredDevices` and `DeviceObservations` now capture:
-
-- MAC / hardware address
-- network name or device name
-- signal strength
-- vendor prefix and vendor name
-- device type
-- device reputation
-- risk score and risk reasons
-- connection state
-- movement trend
-- estimated distance
-- last recommendation
-
-## Runtime configuration
-
-The settings page persists these runtime controls:
+The settings page and settings API persist these controls:
 
 - `EnableWifi`
 - `EnableBluetooth`
@@ -147,64 +122,81 @@ The settings page persists these runtime controls:
 - `AutoLogDevices`
 - `EnablePacketMetadataCapture`
 - `EnableTrafficAnalysis`
+- `ObservationRetentionDays`
+- `AlertRetentionDays`
+- `EventLogRetentionDays`
 
-Both `Tracer.Web` and `Tracer.Scanner.Worker` use the same database-backed runtime settings.
+## API surface
 
-## Monitoring and reporting
+Authenticated endpoints include:
 
-### Monitoring page
+- `GET /api/devices`
+- `GET /api/devices/{id}`
+- `GET /api/alerts`
+- `GET /api/alerts/pending`
+- `GET /api/observations`
+- `GET /api/vendors/status`
+- `POST /api/vendors/sync`
+- `POST /api/scans/run`
+- `POST /api/settings`
+- `GET /api/audit/actions`
+- `GET /api/audit/logins`
 
-- latest worker batch details
-- adapter status summary
-- scan duration and memory usage
-- recent observations
-- diagnostic scan event log
+Swagger UI:
 
-### Reports page
+- `https://localhost:7124/swagger`
+- `http://localhost:5200/swagger`
 
-- daily scan / observation summary
-- weekly scan / observation summary
-- high-risk device summary
-- CSV export for daily, weekly, and risk-device reports
+Health endpoint:
 
-## Connection strings
+- `GET /health`
 
-### Default development connection string
+## Configuration files
 
-```text
-Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TracerDb;MultipleActiveResultSets=true;TrustServerCertificate=true;
-```
+Shared development configuration lives in:
 
-### Where to change it
+- [Tracer.Web/appsettings.json](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Web\appsettings.json)
+- [Tracer.Scanner.Worker/appsettings.json](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\appsettings.json)
 
-- `Tracer.Web/appsettings.json`
-- `Tracer.Web/appsettings.Development.json`
-- `Tracer.Scanner.Worker/appsettings.json`
-- `Tracer.Scanner.Worker/appsettings.Development.json`
-- fallback in `Tracer.Infrastructure/ServiceCollectionExtensions.cs`
+Key config sections:
 
-### Rule
+- `ConnectionStrings`
+- `Scanner`
+- `Alerts`
+- `OuiVendor`
+- `Notifications`
 
-The web app and worker must point to the same database.
+The worker and web app must point to the same database.
+
+## Local launch URLs
+
+The web launch profiles now default to:
+
+- HTTPS: `https://localhost:7124`
+- HTTP: `http://localhost:5200`
+- Startup page: `/swagger`
+
+Configured in [launchSettings.json](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Web\Properties\launchSettings.json).
 
 ## Migrations
 
-The applications use EF Core migrations and apply them on startup via `Database.MigrateAsync()`.
+The applications apply EF Core migrations automatically on startup through `Database.MigrateAsync()`.
 
-### Existing migrations
+Current migration set includes:
 
 - `20260306071245_InitialCreate`
 - `20260306102037_AddAdminUsers`
 - `20260306113645_AddRuntimeSecurityMonitoring`
 - `20260306124500_RepairRuntimeSecurityMonitoringSchema`
+- `20260308082849_ProductionHardening`
 
-### Create a new migration
+Create a new migration:
 
 ```powershell
 dotnet ef migrations add <MigrationName> --project .\Tracer.Infrastructure\Tracer.Infrastructure.csproj --startup-project .\Tracer.Web\Tracer.Web.csproj --output-dir Persistence\Migrations
 ```
 
-### Apply migrations manually
+Apply manually:
 
 ```powershell
 dotnet ef database update --project .\Tracer.Infrastructure\Tracer.Infrastructure.csproj --startup-project .\Tracer.Web\Tracer.Web.csproj
@@ -218,24 +210,25 @@ From the repository root:
 cd C:\Users\tedwell_d\source\repos\Tracer
 ```
 
-### Start the worker
+Start the worker:
 
 ```powershell
 dotnet run --project .\Tracer.Scanner.Worker\
 ```
 
-### Start the web app
+Start the web app:
 
 ```powershell
 dotnet run --project .\Tracer.Web\
 ```
 
-### Recommended order
+Recommended order:
 
 1. Start `Tracer.Scanner.Worker`
 2. Start `Tracer.Web`
-3. Open the URL printed by the web app
-4. Log in with the seeded admin account if needed
+3. Open `https://localhost:7124/swagger` or `http://localhost:5200/swagger`
+4. Sign in with the admin account
+5. Open the dashboard or settings pages after authentication
 
 ## Build commands
 
@@ -244,33 +237,37 @@ dotnet build .\Tracer.slnx
 dotnet clean .\Tracer.slnx
 ```
 
-## Production deployment notes
+## Production notes
 
 - Active radio scanning requires Windows hardware with working Wi-Fi and Bluetooth adapters.
-- `LocalDB` is for development only; use SQL Server 2022 or another proper SQL Server edition in production.
-- `Tracer.Scanner.Worker` is best hosted as a Windows Service.
-- `Tracer.Web` is best hosted behind IIS or another supported ASP.NET Core reverse proxy setup.
-- Both applications must share one SQL Server database.
-- Replace the default admin password before production use.
+- `LocalDB` is development-only; use a proper SQL Server instance in production.
+- `Tracer.Scanner.Worker` is intended to run as a Windows Service.
+- `Tracer.Web` should be hosted behind IIS or another supported reverse proxy.
+- Replace the default admin password immediately.
+- Configure `Notifications:Email` and/or `Notifications:Webhook` before expecting alert delivery.
+- Existing signed-in sessions may need a fresh login after auth/role changes so cookie claims are refreshed.
 
 ## Key operational files
 
-- `Tracer.Infrastructure/Persistence/TracerDbContext.cs`
-- `Tracer.Infrastructure/Persistence/Migrations/`
-- `Tracer.Infrastructure/Services/DatabaseInitializer.cs`
-- `Tracer.Infrastructure/Services/RuntimeSettingsService.cs`
-- `Tracer.Infrastructure/Services/DeviceIntelligenceService.cs`
-- `Tracer.Infrastructure/Services/ScanCoordinator.cs`
-- `Tracer.Radio.Windows/Services/WifiScanner.cs`
-- `Tracer.Radio.Windows/Services/BluetoothScanner.cs`
-- `Tracer.Scanner.Worker/Worker.cs`
-- `Tracer.Scanner.Worker/Program.cs`
-- `Tracer.Web/Program.cs`
+- [Tracer.Infrastructure/Persistence/TracerDbContext.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Persistence\TracerDbContext.cs)
+- [Tracer.Infrastructure/Persistence/Migrations/](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Persistence\Migrations)
+- [Tracer.Infrastructure/Services/DatabaseInitializer.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\DatabaseInitializer.cs)
+- [Tracer.Infrastructure/Services/RuntimeSettingsService.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\RuntimeSettingsService.cs)
+- [Tracer.Infrastructure/Services/DeviceIntelligenceService.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\DeviceIntelligenceService.cs)
+- [Tracer.Infrastructure/Services/OuiVendorLookupService.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\OuiVendorLookupService.cs)
+- [Tracer.Infrastructure/Services/AlertNotificationService.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\AlertNotificationService.cs)
+- [Tracer.Infrastructure/Services/DataRetentionService.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Infrastructure\Services\DataRetentionService.cs)
+- [Tracer.Scanner.Worker/Program.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\Program.cs)
+- [Tracer.Scanner.Worker/Worker.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\Worker.cs)
+- [Tracer.Scanner.Worker/OuiVendorRefreshWorker.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\OuiVendorRefreshWorker.cs)
+- [Tracer.Scanner.Worker/DataRetentionWorker.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\DataRetentionWorker.cs)
+- [Tracer.Web/Program.cs](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Web\Program.cs)
+- [Tracer.Web/Pages/Settings.cshtml](c:\Users\tedwell_d\source\repos\Tracer\Tracer.Web\Pages\Settings.cshtml)
 
-## Current limitations
+## Known limitations
 
-- Radio scanning is Windows-specific.
-- Distance is estimated from signal strength and is inherently approximate.
-- Vendor lookup is currently heuristic and based on a built-in prefix map, not a live OUI feed.
-- Traffic analysis and packet metadata capture settings are present, but deep packet inspection is not yet implemented.
-- PDF / Excel report export, heatmaps, proximity maps, automatic network blocking, AI behavior analysis, multi-location aggregation, and cloud sync are not implemented yet.
+- Radio scanning remains Windows-specific.
+- Distance estimation is still RSSI-based and approximate.
+- Deep packet inspection is not implemented.
+- Real MFA, external identity providers, distributed scanner nodes, SIEM forwarding, and advanced ML analysis are not implemented yet.
+- Swagger is intended for local/testing use; lock it down appropriately before broader exposure.

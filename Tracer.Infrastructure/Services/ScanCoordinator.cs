@@ -14,6 +14,7 @@ public sealed class ScanCoordinator(
     IDbContextFactory<TracerDbContext> dbContextFactory,
     IRuntimeSettingsService runtimeSettingsService,
     DeviceIntelligenceService deviceIntelligenceService,
+    AlertNotificationService alertNotificationService,
     ILogger<ScanCoordinator> logger) : IScanCoordinator
 {
     public async Task<ScanCycleSummary> ExecuteAsync(CancellationToken cancellationToken)
@@ -249,6 +250,15 @@ public sealed class ScanCoordinator(
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        var createdAlertIds = await dbContext.DeviceAlerts
+            .Where(x => x.CreatedUtc == now
+                && x.Status == AlertStatus.Pending
+                && x.NotificationStatus == AlertNotificationStatus.Pending)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        await alertNotificationService.NotifyAsync(createdAlertIds, cancellationToken);
 
         return new ScanCycleSummary(
             startedUtc,

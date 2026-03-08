@@ -14,6 +14,13 @@
     </div>
 </section>
 
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <section class="panel">
+        <p class="status-banner">@Model.StatusMessage</p>
+    </section>
+}
+
 <section class="panel">
     <div class="panel-header">
         <h2>Scan Configuration</h2>
@@ -234,6 +241,49 @@
                     <p class="hint-text">Reserved for deeper traffic analysis workflows and future packet inspection features.</p>
                 </div>
             </fieldset>
+
+            <fieldset class="settings-section">
+                <legend>Retention Policies</legend>
+
+                <div class="form-group">
+                    <label for="observation-retention">Observation Retention (Days)</label>
+                    <input
+                        type="number"
+                        id="observation-retention"
+                        name="observationRetentionDays"
+                        min="1"
+                        max="3650"
+                        value="@Model.CurrentSettings.ObservationRetentionDays"
+                        class="form-input" />
+                    <p class="hint-text">Device observations older than this are automatically deleted by the worker.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="alert-retention">Alert Retention (Days)</label>
+                    <input
+                        type="number"
+                        id="alert-retention"
+                        name="alertRetentionDays"
+                        min="1"
+                        max="3650"
+                        value="@Model.CurrentSettings.AlertRetentionDays"
+                        class="form-input" />
+                    <p class="hint-text">Acknowledged and resolved alerts older than this are removed.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-retention">Event Log Retention (Days)</label>
+                    <input
+                        type="number"
+                        id="event-retention"
+                        name="eventLogRetentionDays"
+                        min="1"
+                        max="3650"
+                        value="@Model.CurrentSettings.EventLogRetentionDays"
+                        class="form-input" />
+                    <p class="hint-text">Monitoring event logs older than this are pruned to control storage growth.</p>
+                </div>
+            </fieldset>
         </div>
 
         <div class="action-buttons">
@@ -246,6 +296,16 @@
 <style>
     .settings-form {
         margin: 20px 0;
+    }
+
+    .status-banner {
+        margin: 0;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(149, 255, 183, 0.08);
+        color: var(--text);
+        font-weight: 600;
     }
 
     .settings-grid {
@@ -431,7 +491,10 @@
             riskAlertThreshold: parseInt(formData.get('riskAlertThreshold')),
             autoLogDevices: formData.get('autoLogDevices') ? true : false,
             enablePacketMetadataCapture: formData.get('enablePacketMetadataCapture') ? true : false,
-            enableTrafficAnalysis: formData.get('enableTrafficAnalysis') ? true : false
+            enableTrafficAnalysis: formData.get('enableTrafficAnalysis') ? true : false,
+            observationRetentionDays: parseInt(formData.get('observationRetentionDays')),
+            alertRetentionDays: parseInt(formData.get('alertRetentionDays')),
+            eventLogRetentionDays: parseInt(formData.get('eventLogRetentionDays'))
         };
 
         const response = await fetch('/api/settings', {

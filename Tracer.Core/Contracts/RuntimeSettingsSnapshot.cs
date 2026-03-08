@@ -15,4 +15,7 @@ public sealed record RuntimeSettingsSnapshot(
     int RiskAlertThreshold,
     bool AutoLogDevices,
     bool EnablePacketMetadataCapture,
-    bool EnableTrafficAnalysis);
+    bool EnableTrafficAnalysis,
+    int ObservationRetentionDays,
+    int AlertRetentionDays,
+    int EventLogRetentionDays);

@@ -115,3 +115,4 @@ c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\worker\Tracer.Scanner.Worker.de
 c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\worker\Tracer.Scanner.Worker.runtimeconfig.json
 c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\worker\Tracer.Scanner.Worker.dll
 c:\Users\tedwell_d\source\repos\Tracer\.tmpbuild\worker\Tracer.Scanner.Worker.pdb
+C:\Users\tedwell_d\source\repos\Tracer\Tracer.Scanner.Worker\bin\Debug\net8.0-windows10.0.19041.0\Microsoft.Extensions.Http.dll
